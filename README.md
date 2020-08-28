@@ -1,10 +1,11 @@
-# Coroutine Location API Library for Android
+# Coroutines Location API Library for Android
 
-This library wraps the Location APIs in Kotlin `suspend fun` and `Flow`.
+This library wraps the Location APIs in Kotlin coroutines and `Flow`.
 
 # Donations
 
-If you like the library and want to support the creator for development/maintenance, you can make a donation in Bitcoin to `bc1q5uejfyl2kskhhveg7lx4fcwgv8hz88r92yzjsu`. Thank you!
+If you like the library and want to support the creator for development/maintenance, you can make a donation in Bitcoin
+to `bc1q5uejfyl2kskhhveg7lx4fcwgv8hz88r92yzjsu`. Thank you!
 
 # License
 

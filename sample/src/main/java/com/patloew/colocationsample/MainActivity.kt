@@ -19,7 +19,7 @@ import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.LibsBuilder
 import com.patloew.colocation.CoLocation
 import java.text.DateFormat
-import java.util.*
+import java.util.Date
 
 /* Copyright 2020 Patrick Löwenstein
  *
@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T =
-                    MainViewModel(CoLocation.from(this@MainActivity)) as T
+                MainViewModel(CoLocation.from(this@MainActivity)) as T
         }
     }
 
@@ -59,10 +59,10 @@ class MainActivity : AppCompatActivity() {
         lastUpdate = findViewById(R.id.tv_last_update)
         locationText = findViewById(R.id.tv_current_location)
         addressText = findViewById(R.id.tv_current_address)
-
         lifecycle.addObserver(viewModel)
         viewModel.locationUpdates.observe(this, this::onLocationUpdate)
-        viewModel.resolveLocationSettingsEvent.observe(this) { it.resolve(this, REQUEST_SHOW_SETTINGS) }
+        viewModel.addressUpdates.observe(this, this::onAddressUpdate)
+        viewModel.resolveSettingsEvent.observe(this) { it.resolve(this, REQUEST_SHOW_SETTINGS) }
     }
 
     override fun onResume() {
@@ -83,7 +83,11 @@ class MainActivity : AppCompatActivity() {
             if (apiAvailability.isUserResolvableError(status)) {
                 apiAvailability.getErrorDialog(this, status, 1).show()
             } else {
-                Snackbar.make(lastUpdate!!, "Google Play Services unavailable. This app will not work", Snackbar.LENGTH_INDEFINITE).show()
+                Snackbar.make(
+                    lastUpdate!!,
+                    "Google Play Services unavailable. This app will not work",
+                    Snackbar.LENGTH_INDEFINITE
+                ).show()
             }
         }
     }
@@ -96,11 +100,11 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.menu_licenses) {
             LibsBuilder()
-                    .withFields(*Libs.toStringArray(R.string::class.java.fields))
-                    .withActivityStyle(Libs.ActivityStyle.LIGHT_DARK_TOOLBAR)
-                    .withActivityTitle("Open Source Licenses")
-                    .withLicenseShown(true)
-                    .start(this)
+                .withFields(*Libs.toStringArray(R.string::class.java.fields))
+                .withActivityStyle(Libs.ActivityStyle.LIGHT_DARK_TOOLBAR)
+                .withActivityTitle("Open Source Licenses")
+                .withLicenseShown(true)
+                .start(this)
 
             return true
         }
@@ -110,24 +114,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun onLocationUpdate(location: Location?) {
         lastUpdate!!.text = DATE_FORMAT.format(Date())
-        locationText!!.text = location?.let { "${it.latitude}, ${it.longitude}" } ?: "N/A"
+        locationText!!.text = location?.run { "$latitude, $longitude" } ?: "N/A"
     }
 
-    private fun onAddressUpdate(address: Address) {
-        addressText!!.text = getAddressText(address)
+    private fun onAddressUpdate(address: Address?) {
+        addressText!!.text = address?.fullText ?: "N/A"
     }
 
-    private fun getAddressText(address: Address): String {
-        var addressText = ""
-        val maxAddressLineIndex = address.maxAddressLineIndex
-
-        for (i in 0..maxAddressLineIndex) {
-            addressText += address.getAddressLine(i)
-            if (i != maxAddressLineIndex) {
-                addressText += "\n"
-            }
-        }
-
-        return addressText
-    }
+    private val Address.fullText: String
+        get() = (0..maxAddressLineIndex).joinToString(separator = "\n") { getAddressLine(it) }
 }

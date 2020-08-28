@@ -1,6 +1,8 @@
 package com.patloew.colocation
 
 import android.content.Context
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
@@ -36,6 +38,7 @@ class CoLocationTest {
 
     private val locationProvider: FusedLocationProviderClient = mockk()
     private val settings: SettingsClient = mockk()
+    private val geocoder: Geocoder = mockk()
     private val context: Context = mockk()
     private val testCoroutineDispatcher = TestCoroutineDispatcher()
     private val testCoroutineScope = TestCoroutineScope()
@@ -48,6 +51,7 @@ class CoLocationTest {
         mockkStatic(LocationServices::class)
         every { LocationServices.getFusedLocationProviderClient(context) } returns locationProvider
         every { LocationServices.getSettingsClient(context) } returns settings
+        mockkConstructor(Geocoder::class)
     }
 
     @AfterEach
@@ -61,12 +65,12 @@ class CoLocationTest {
     @Test
     fun flushLocations() {
         testTaskWithCancelThrows(
-                createTask = { locationProvider.flushLocations() },
-                taskResult = null,
-                expectedResult = Unit,
-                expectedErrorException = TestException(),
-                expectedCancelException = TaskCancelledException(""),
-                coLocationCall = { coLocation.flushLocations() }
+            createTask = { locationProvider.flushLocations() },
+            taskResult = null,
+            expectedResult = Unit,
+            expectedErrorException = TestException(),
+            expectedCancelException = TaskCancelledException(""),
+            coLocationCall = { coLocation.flushLocations() }
         )
     }
 
@@ -76,12 +80,12 @@ class CoLocationTest {
             every { isLocationAvailable } returns true
         }
         testTaskWithCancelThrows(
-                createTask = { locationProvider.locationAvailability },
-                taskResult = locationAvailability,
-                expectedResult = true,
-                expectedErrorException = TestException(),
-                expectedCancelException = TaskCancelledException(""),
-                coLocationCall = { coLocation.isLocationAvailable() }
+            createTask = { locationProvider.locationAvailability },
+            taskResult = locationAvailability,
+            expectedResult = true,
+            expectedErrorException = TestException(),
+            expectedCancelException = TaskCancelledException(""),
+            coLocationCall = { coLocation.isLocationAvailable() }
         )
     }
 
@@ -91,12 +95,12 @@ class CoLocationTest {
             every { isLocationAvailable } returns false
         }
         testTaskWithCancelThrows(
-                createTask = { locationProvider.locationAvailability },
-                taskResult = locationAvailability,
-                expectedResult = false,
-                expectedErrorException = TestException(),
-                expectedCancelException = TaskCancelledException(""),
-                coLocationCall = { coLocation.isLocationAvailable() }
+            createTask = { locationProvider.locationAvailability },
+            taskResult = locationAvailability,
+            expectedResult = false,
+            expectedErrorException = TestException(),
+            expectedCancelException = TaskCancelledException(""),
+            coLocationCall = { coLocation.isLocationAvailable() }
         )
     }
 
@@ -104,12 +108,12 @@ class CoLocationTest {
     fun getLastLocation() {
         val location = mockk<Location>()
         testTaskWithCancelReturns(
-                createTask = { locationProvider.lastLocation },
-                taskResult = location,
-                expectedResult = location,
-                expectedErrorException = TestException(),
-                cancelResult = null,
-                coLocationCall = { coLocation.getLastLocation() }
+            createTask = { locationProvider.lastLocation },
+            taskResult = location,
+            expectedResult = location,
+            expectedErrorException = TestException(),
+            cancelResult = null,
+            coLocationCall = { coLocation.getLastLocation() }
         )
     }
 
@@ -117,24 +121,24 @@ class CoLocationTest {
     fun setMockLocation() {
         val location: Location = mockk()
         testTaskWithCancelThrows(
-                createTask = { locationProvider.setMockLocation(location) },
-                taskResult = null,
-                expectedResult = Unit,
-                expectedErrorException = TestException(),
-                expectedCancelException = TaskCancelledException(""),
-                coLocationCall = { coLocation.setMockLocation(location) }
+            createTask = { locationProvider.setMockLocation(location) },
+            taskResult = null,
+            expectedResult = Unit,
+            expectedErrorException = TestException(),
+            expectedCancelException = TaskCancelledException(""),
+            coLocationCall = { coLocation.setMockLocation(location) }
         )
     }
 
     @Test
     fun setMockMode() {
         testTaskWithCancelThrows(
-                createTask = { locationProvider.setMockMode(true) },
-                taskResult = null,
-                expectedResult = Unit,
-                expectedErrorException = TestException(),
-                expectedCancelException = TaskCancelledException(""),
-                coLocationCall = { coLocation.setMockMode(true) }
+            createTask = { locationProvider.setMockMode(true) },
+            taskResult = null,
+            expectedResult = Unit,
+            expectedErrorException = TestException(),
+            expectedCancelException = TaskCancelledException(""),
+            coLocationCall = { coLocation.setMockMode(true) }
         )
     }
 
@@ -147,7 +151,13 @@ class CoLocationTest {
         }
         val locations: List<Location> = MutableList(5) { mockk() }
         val callbackSlot = slot<LocationCallback>()
-        every { locationProvider.requestLocationUpdates(locationRequest, capture(callbackSlot), any()) } returns requestTask
+        every {
+            locationProvider.requestLocationUpdates(
+                locationRequest,
+                capture(callbackSlot),
+                any()
+            )
+        } returns requestTask
         var result: Location? = null
 
         val job = testCoroutineScope.launch { result = coLocation.getLocationUpdate(locationRequest) }
@@ -218,7 +228,13 @@ class CoLocationTest {
         }
         val locations: List<Location> = MutableList(5) { mockk() }
         val callbackSlot = slot<LocationCallback>()
-        every { locationProvider.requestLocationUpdates(locationRequest, capture(callbackSlot), any()) } returns requestTask
+        every {
+            locationProvider.requestLocationUpdates(
+                locationRequest,
+                capture(callbackSlot),
+                any()
+            )
+        } returns requestTask
 
         val flowResults = mutableListOf<Location>()
 
@@ -284,10 +300,10 @@ class CoLocationTest {
     fun `checkLocationSettings satisfied`() {
         val locationSettingsRequest: LocationSettingsRequest = mockk()
         testTaskSuccess(
-                createTask = { settings.checkLocationSettings(locationSettingsRequest) },
-                taskResult = mockk(),
-                expectedResult = CoLocation.SettingsResult.Satisfied,
-                coLocationCall = { coLocation.checkLocationSettings(locationSettingsRequest) }
+            createTask = { settings.checkLocationSettings(locationSettingsRequest) },
+            taskResult = mockk(),
+            expectedResult = CoLocation.SettingsResult.Satisfied,
+            coLocationCall = { coLocation.checkLocationSettings(locationSettingsRequest) }
         )
     }
 
@@ -316,8 +332,8 @@ class CoLocationTest {
         val locationSettingsRequest: LocationSettingsRequest = mockk()
         assertThrows(TaskCancelledException::class.java) {
             testTaskCancel(
-                    createTask = { settings.checkLocationSettings(locationSettingsRequest) },
-                    coLocationCall = { coLocation.checkLocationSettings(locationSettingsRequest) }
+                createTask = { settings.checkLocationSettings(locationSettingsRequest) },
+                coLocationCall = { coLocation.checkLocationSettings(locationSettingsRequest) }
             )
         }
     }
@@ -326,21 +342,287 @@ class CoLocationTest {
     fun `checkLocationSettings locationRequest success`() {
         val locationRequest: LocationRequest = mockk()
         testTaskSuccess(
-                createTask = { settings.checkLocationSettings(any()) },
-                taskResult = mockk(),
-                expectedResult = CoLocation.SettingsResult.Satisfied,
-                coLocationCall = { coLocation.checkLocationSettings(locationRequest) }
+            createTask = { settings.checkLocationSettings(any()) },
+            taskResult = mockk(),
+            expectedResult = CoLocation.SettingsResult.Satisfied,
+            coLocationCall = { coLocation.checkLocationSettings(locationRequest) }
         )
+    }
+
+    @Test
+    fun `getAddressFromLocation with result`() {
+        val latitude = 1.0
+        val longitude = 2.0
+        val location: Location = mockk()
+        val address: Address = mockk()
+        every { location.latitude } returns latitude
+        every { location.longitude } returns longitude
+        every { anyConstructed<Geocoder>().getFromLocation(latitude, longitude, 1) } returns listOf(address)
+
+        val result = coLocation.getAddressFromLocation(location)
+
+        assertEquals(address, result)
+    }
+
+    @Test
+    fun `getAddressFromLocation without result`() {
+        val latitude = 1.0
+        val longitude = 2.0
+        val location: Location = mockk()
+        every { location.latitude } returns latitude
+        every { location.longitude } returns longitude
+        every { anyConstructed<Geocoder>().getFromLocation(latitude, longitude, 1) } returns emptyList()
+
+        val result = coLocation.getAddressFromLocation(location)
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `getAddressFromLocation lat lng with result`() {
+        val latitude = 1.0
+        val longitude = 2.0
+        val address: Address = mockk()
+        every { anyConstructed<Geocoder>().getFromLocation(latitude, longitude, 1) } returns listOf(address)
+
+        val result = coLocation.getAddressFromLocation(latitude, longitude)
+
+        assertEquals(address, result)
+    }
+
+    @Test
+    fun `getAddressFromLocation lat lng without result`() {
+        val latitude = 1.0
+        val longitude = 2.0
+        every { anyConstructed<Geocoder>().getFromLocation(latitude, longitude, 1) } returns emptyList()
+
+        val result = coLocation.getAddressFromLocation(latitude, longitude)
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `getAddressFromLocationName with result`() {
+        val locationName = "SFO"
+        val address: Address = mockk()
+        every { anyConstructed<Geocoder>().getFromLocationName(locationName, 1) } returns listOf(address)
+
+        val result = coLocation.getAddressFromLocationName(locationName)
+
+        assertEquals(address, result)
+    }
+
+    @Test
+    fun `getAddressFromLocationName without result`() {
+        val locationName = "SFO"
+        every { anyConstructed<Geocoder>().getFromLocationName(locationName, 1) } returns emptyList()
+
+        val result = coLocation.getAddressFromLocationName(locationName)
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `getAddressFromLocationName bounds with result`() {
+        val locationName = "SFO"
+        val lowerLeftLatitude = 1.0
+        val lowerLeftLongitude = 2.0
+        val upperRightLatitude = 3.0
+        val upperRightLongitude = 4.0
+        val address: Address = mockk()
+        every {
+            anyConstructed<Geocoder>().getFromLocationName(
+                locationName,
+                1,
+                lowerLeftLatitude,
+                lowerLeftLongitude,
+                upperRightLatitude,
+                upperRightLongitude
+            )
+        } returns listOf(address)
+
+        val result = coLocation.getAddressFromLocationName(
+            locationName,
+            lowerLeftLatitude,
+            lowerLeftLongitude,
+            upperRightLatitude,
+            upperRightLongitude
+        )
+
+        assertEquals(address, result)
+    }
+
+    @Test
+    fun `getAddressFromLocationName bounds without result`() {
+        val locationName = "SFO"
+        val lowerLeftLatitude = 1.0
+        val lowerLeftLongitude = 2.0
+        val upperRightLatitude = 3.0
+        val upperRightLongitude = 4.0
+        every {
+            anyConstructed<Geocoder>().getFromLocationName(
+                locationName,
+                1,
+                lowerLeftLatitude,
+                lowerLeftLongitude,
+                upperRightLatitude,
+                upperRightLongitude
+            )
+        } returns emptyList()
+
+        val result = coLocation.getAddressFromLocationName(
+            locationName,
+            lowerLeftLatitude,
+            lowerLeftLongitude,
+            upperRightLatitude,
+            upperRightLongitude
+        )
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `getAddressListFromLocation with result`() {
+        val latitude = 1.0
+        val longitude = 2.0
+        val location: Location = mockk()
+        val address: Address = mockk()
+        every { location.latitude } returns latitude
+        every { location.longitude } returns longitude
+        every { anyConstructed<Geocoder>().getFromLocation(latitude, longitude, 5) } returns listOf(address)
+
+        val result = coLocation.getAddressListFromLocation(location, maxResults = 5)
+
+        assertEquals(listOf(address), result)
+    }
+
+    @Test
+    fun `getAddressListFromLocation without result`() {
+        val latitude = 1.0
+        val longitude = 2.0
+        val location: Location = mockk()
+        every { location.latitude } returns latitude
+        every { location.longitude } returns longitude
+        every { anyConstructed<Geocoder>().getFromLocation(latitude, longitude, 5) } returns emptyList()
+
+        val result = coLocation.getAddressListFromLocation(location, maxResults = 5)
+
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `getAddressListFromLocation lat lng with result`() {
+        val latitude = 1.0
+        val longitude = 2.0
+        val address: Address = mockk()
+        every { anyConstructed<Geocoder>().getFromLocation(latitude, longitude, 5) } returns listOf(address)
+
+        val result = coLocation.getAddressListFromLocation(latitude, longitude, maxResults = 5)
+
+        assertEquals(listOf(address), result)
+    }
+
+    @Test
+    fun `getAddressListFromLocation lat lng without result`() {
+        val latitude = 1.0
+        val longitude = 2.0
+        every { anyConstructed<Geocoder>().getFromLocation(latitude, longitude, 5) } returns emptyList()
+
+        val result = coLocation.getAddressListFromLocation(latitude, longitude, maxResults = 5)
+
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `getAddressListFromLocationName with result`() {
+        val locationName = "SFO"
+        val address: Address = mockk()
+        every { anyConstructed<Geocoder>().getFromLocationName(locationName, 5) } returns listOf(address)
+
+        val result = coLocation.getAddressListFromLocationName(locationName, maxResults = 5)
+
+        assertEquals(listOf(address), result)
+    }
+
+    @Test
+    fun `getAddressListFromLocationName without result`() {
+        val locationName = "SFO"
+        every { anyConstructed<Geocoder>().getFromLocationName(locationName, 5) } returns emptyList()
+
+        val result = coLocation.getAddressListFromLocationName(locationName, maxResults = 5)
+
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `getAddressListFromLocationName bounds with result`() {
+        val locationName = "SFO"
+        val lowerLeftLatitude = 1.0
+        val lowerLeftLongitude = 2.0
+        val upperRightLatitude = 3.0
+        val upperRightLongitude = 4.0
+        val address: Address = mockk()
+        every {
+            anyConstructed<Geocoder>().getFromLocationName(
+                locationName,
+                5,
+                lowerLeftLatitude,
+                lowerLeftLongitude,
+                upperRightLatitude,
+                upperRightLongitude
+            )
+        } returns listOf(address)
+
+        val result = coLocation.getAddressListFromLocationName(
+            locationName,
+            lowerLeftLatitude,
+            lowerLeftLongitude,
+            upperRightLatitude,
+            upperRightLongitude,
+            maxResults = 5
+        )
+
+        assertEquals(listOf(address), result)
+    }
+
+    @Test
+    fun `getAddressListFromLocationName bounds without result`() {
+        val locationName = "SFO"
+        val lowerLeftLatitude = 1.0
+        val lowerLeftLongitude = 2.0
+        val upperRightLatitude = 3.0
+        val upperRightLongitude = 4.0
+        every {
+            anyConstructed<Geocoder>().getFromLocationName(
+                locationName,
+                5,
+                lowerLeftLatitude,
+                lowerLeftLongitude,
+                upperRightLatitude,
+                upperRightLongitude
+            )
+        } returns emptyList()
+
+        val result = coLocation.getAddressListFromLocationName(
+            locationName,
+            lowerLeftLatitude,
+            lowerLeftLongitude,
+            upperRightLatitude,
+            upperRightLongitude,
+            maxResults = 5
+        )
+
+        assertTrue(result.isEmpty())
     }
 }
 
 private fun <T, R> testTaskWithCancelThrows(
-        createTask: MockKMatcherScope.() -> Task<T>,
-        taskResult: T,
-        expectedResult: R,
-        expectedErrorException: Exception,
-        expectedCancelException: Exception,
-        coLocationCall: suspend CoroutineScope.() -> R
+    createTask: MockKMatcherScope.() -> Task<T>,
+    taskResult: T,
+    expectedResult: R,
+    expectedErrorException: Exception,
+    expectedCancelException: Exception,
+    coLocationCall: suspend CoroutineScope.() -> R
 ) {
     testTaskSuccess(createTask, taskResult, expectedResult, coLocationCall)
     testTaskFailure(createTask, expectedErrorException, coLocationCall)
@@ -348,12 +630,12 @@ private fun <T, R> testTaskWithCancelThrows(
 }
 
 private fun <T, R> testTaskWithCancelReturns(
-        createTask: MockKMatcherScope.() -> Task<T>,
-        taskResult: T,
-        expectedResult: R?,
-        expectedErrorException: Exception,
-        cancelResult: R?,
-        coLocationCall: suspend CoroutineScope.() -> R
+    createTask: MockKMatcherScope.() -> Task<T>,
+    taskResult: T,
+    expectedResult: R?,
+    expectedErrorException: Exception,
+    cancelResult: R?,
+    coLocationCall: suspend CoroutineScope.() -> R
 ) {
     testTaskSuccess(createTask, taskResult, expectedResult, coLocationCall)
     testTaskFailure(createTask, expectedErrorException, coLocationCall)
@@ -361,8 +643,8 @@ private fun <T, R> testTaskWithCancelReturns(
 }
 
 private fun <T, R> testTaskCancel(
-        createTask: MockKMatcherScope.() -> Task<T>,
-        coLocationCall: suspend CoroutineScope.() -> R
+    createTask: MockKMatcherScope.() -> Task<T>,
+    coLocationCall: suspend CoroutineScope.() -> R
 ): R? {
     val cancelTask = mockTask<T>()
     every { createTask() } returns cancelTask
@@ -373,10 +655,10 @@ private fun <T, R> testTaskCancel(
 }
 
 private fun <T, R> testTaskSuccess(
-        createTask: MockKMatcherScope.() -> Task<T>,
-        taskResult: T,
-        expectedResult: R,
-        coLocationCall: suspend CoroutineScope.() -> R
+    createTask: MockKMatcherScope.() -> Task<T>,
+    taskResult: T,
+    expectedResult: R,
+    coLocationCall: suspend CoroutineScope.() -> R
 ) {
     val successTask = mockTask<T>()
     every { createTask() } returns successTask
@@ -387,9 +669,9 @@ private fun <T, R> testTaskSuccess(
 }
 
 private fun <T, R> testTaskFailure(
-        createTask: MockKMatcherScope.() -> Task<T>,
-        expectedErrorException: Exception,
-        coLocationCall: suspend CoroutineScope.() -> R
+    createTask: MockKMatcherScope.() -> Task<T>,
+    expectedErrorException: Exception,
+    coLocationCall: suspend CoroutineScope.() -> R
 ) {
     val errorTask = mockTask<T>()
     every { createTask() } returns errorTask
@@ -425,9 +707,9 @@ private fun <T> mockTask() = mockk<Task<T>>().apply {
 private class TestException : Exception()
 
 private fun <T> runBlockingWithTimeout(
-        timeoutMillis: Long = 5000,
-        context: CoroutineContext = EmptyCoroutineContext,
-        block: suspend CoroutineScope.() -> T
+    timeoutMillis: Long = 5000,
+    context: CoroutineContext = EmptyCoroutineContext,
+    block: suspend CoroutineScope.() -> T
 ): T = runBlocking(context) { withTimeout(timeoutMillis) { withContext(Dispatchers.Default) { block() } } }
 
 private suspend fun CapturingSlot<*>.waitForCapture() {

@@ -1,5 +1,6 @@
 package com.patloew.colocationsample
 
+import android.location.Address
 import android.location.Location
 import android.util.Log
 import androidx.lifecycle.*
@@ -26,18 +27,19 @@ import kotlinx.coroutines.launch
 class MainViewModel(private val coLocation: CoLocation) : ViewModel(), LifecycleObserver {
 
     private val locationRequest: LocationRequest = LocationRequest.create()
-            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-            //.setSmallestDisplacement(1f)
-            //.setNumUpdates(3)
-            .setInterval(5000)
-            .setFastestInterval(2500)
+        .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+        //.setSmallestDisplacement(1f)
+        //.setNumUpdates(3)
+        .setInterval(5000)
+        .setFastestInterval(2500)
 
 
     private val mutableLocationUpdates: MutableLiveData<Location> = MutableLiveData()
     val locationUpdates: LiveData<Location> = mutableLocationUpdates
+    val addressUpdates: LiveData<Address?> = locationUpdates.map(coLocation::getAddressFromLocation)
 
-    private val mutableResolveLocationSettingsEvent: MutableLiveData<CoLocation.SettingsResult.Resolvable> = MutableLiveData()
-    val resolveLocationSettingsEvent: LiveData<CoLocation.SettingsResult.Resolvable> = mutableResolveLocationSettingsEvent
+    private val mutableResolveSettingsEvent: MutableLiveData<CoLocation.SettingsResult.Resolvable> = MutableLiveData()
+    val resolveSettingsEvent: LiveData<CoLocation.SettingsResult.Resolvable> = mutableResolveSettingsEvent
 
     private var locationUpdatesJob: Job? = null
 
@@ -60,7 +62,7 @@ class MainViewModel(private val coLocation: CoLocation) : ViewModel(), Lifecycle
                     coLocation.getLastLocation()?.run(mutableLocationUpdates::postValue)
                     startLocationUpdates()
                 }
-                is CoLocation.SettingsResult.Resolvable -> mutableResolveLocationSettingsEvent.postValue(settingsResult)
+                is CoLocation.SettingsResult.Resolvable -> mutableResolveSettingsEvent.postValue(settingsResult)
                 else -> { /* Ignore for now, we can't resolve this anyway */ }
             }
         }
