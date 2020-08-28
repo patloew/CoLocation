@@ -2,6 +2,7 @@ package com.patloew.colocation
 
 import android.content.Context
 import android.location.Location
+import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.OnCanceledListener
 import com.google.android.gms.tasks.OnFailureListener
@@ -278,6 +279,59 @@ class CoLocationTest {
 
         assertTrue(resultException!!.cause!!.cause is TaskCancelledException)
     }
+
+    @Test
+    fun `checkLocationSettings satisfied`() {
+        val locationSettingsRequest: LocationSettingsRequest = mockk()
+        testTaskSuccess(
+                createTask = { settings.checkLocationSettings(locationSettingsRequest) },
+                taskResult = mockk(),
+                expectedResult = CoLocation.SettingsResult.Satisfied,
+                coLocationCall = { coLocation.checkLocationSettings(locationSettingsRequest) }
+        )
+    }
+
+    @Test
+    fun `checkLocationSettings resolvable`() {
+        val locationSettingsRequest: LocationSettingsRequest = mockk()
+        val errorTask = mockTask<LocationSettingsResponse>()
+        every { settings.checkLocationSettings(locationSettingsRequest) } returns errorTask
+        errorTask.mockError(mockk<ResolvableApiException>())
+        val result = runBlockingWithTimeout { coLocation.checkLocationSettings(locationSettingsRequest) }
+        assertTrue(result is CoLocation.SettingsResult.Resolvable)
+    }
+
+    @Test
+    fun `checkLocationSettings not resolvable`() {
+        val locationSettingsRequest: LocationSettingsRequest = mockk()
+        val errorTask = mockTask<LocationSettingsResponse>()
+        every { settings.checkLocationSettings(locationSettingsRequest) } returns errorTask
+        errorTask.mockError(TestException())
+        val result = runBlockingWithTimeout { coLocation.checkLocationSettings(locationSettingsRequest) }
+        assertTrue(result is CoLocation.SettingsResult.NotResolvable)
+    }
+
+    @Test
+    fun `checkLocationSettings canceled`() {
+        val locationSettingsRequest: LocationSettingsRequest = mockk()
+        assertThrows(TaskCancelledException::class.java) {
+            testTaskCancel(
+                    createTask = { settings.checkLocationSettings(locationSettingsRequest) },
+                    coLocationCall = { coLocation.checkLocationSettings(locationSettingsRequest) }
+            )
+        }
+    }
+
+    @Test
+    fun `checkLocationSettings locationRequest success`() {
+        val locationRequest: LocationRequest = mockk()
+        testTaskSuccess(
+                createTask = { settings.checkLocationSettings(any()) },
+                taskResult = mockk(),
+                expectedResult = CoLocation.SettingsResult.Satisfied,
+                coLocationCall = { coLocation.checkLocationSettings(locationRequest) }
+        )
+    }
 }
 
 private fun <T, R> testTaskWithCancelThrows(
@@ -310,12 +364,12 @@ private fun <T, R> testTaskCancel(
         createTask: MockKMatcherScope.() -> Task<T>,
         coLocationCall: suspend CoroutineScope.() -> R
 ): R? {
-    val cancelTask = mockk<Task<T>>(relaxed = true)
+    val cancelTask = mockTask<T>()
     every { createTask() } returns cancelTask
 
     cancelTask.mockCanceled()
 
-    return runBlockingWithTimeout(5000) { coLocationCall() }
+    return runBlockingWithTimeout { coLocationCall() }
 }
 
 private fun <T, R> testTaskSuccess(
@@ -324,12 +378,12 @@ private fun <T, R> testTaskSuccess(
         expectedResult: R,
         coLocationCall: suspend CoroutineScope.() -> R
 ) {
-    val successTask = mockk<Task<T>>(relaxed = true)
+    val successTask = mockTask<T>()
     every { createTask() } returns successTask
 
     successTask.mockSuccess(taskResult)
 
-    assertEquals(expectedResult, runBlockingWithTimeout(5000) { coLocationCall() })
+    assertEquals(expectedResult, runBlockingWithTimeout { coLocationCall() })
 }
 
 private fun <T, R> testTaskFailure(
@@ -337,12 +391,12 @@ private fun <T, R> testTaskFailure(
         expectedErrorException: Exception,
         coLocationCall: suspend CoroutineScope.() -> R
 ) {
-    val errorTask = mockk<Task<T>>(relaxed = true)
+    val errorTask = mockTask<T>()
     every { createTask() } returns errorTask
 
     assertThrows(expectedErrorException::class.java) {
         errorTask.mockError(expectedErrorException)
-        runBlockingWithTimeout(5000) { coLocationCall() }
+        runBlockingWithTimeout { coLocationCall() }
     }
 
 }
@@ -362,10 +416,16 @@ private fun Task<*>.mockCanceled() = every { addOnCanceledListener(any()) } answ
     self as Task<*>
 }
 
+private fun <T> mockTask() = mockk<Task<T>>().apply {
+    every { addOnSuccessListener(any()) } returns this
+    every { addOnCanceledListener(any()) } returns this
+    every { addOnFailureListener(any()) } returns this
+}
+
 private class TestException : Exception()
 
 private fun <T> runBlockingWithTimeout(
-        timeoutMillis: Long,
+        timeoutMillis: Long = 5000,
         context: CoroutineContext = EmptyCoroutineContext,
         block: suspend CoroutineScope.() -> T
 ): T = runBlocking(context) { withTimeout(timeoutMillis) { withContext(Dispatchers.Default) { block() } } }
