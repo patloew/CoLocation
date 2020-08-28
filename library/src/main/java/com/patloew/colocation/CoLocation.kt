@@ -79,7 +79,7 @@ interface CoLocation {
      * update was returned.
      */
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
-    suspend fun getLocationUpdate(locationRequest: LocationRequest): Location?
+    suspend fun getLocationUpdate(locationRequest: LocationRequest): Location
 
     /**
      * Requests location updates. This method is suited for the foreground use cases. For background use cases, the
@@ -154,9 +154,6 @@ interface CoLocation {
 
         /** Location settings are not satisfied and this can't be fixed by showing the user a dialog */
         class NotResolvable(val exception: Exception) : SettingsResult()
-
-        /** The task was canceled while checking the settings */
-        object Canceled : SettingsResult()
     }
 
 }
