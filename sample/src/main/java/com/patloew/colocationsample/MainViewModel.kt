@@ -4,7 +4,6 @@ import android.location.Location
 import android.util.Log
 import androidx.lifecycle.*
 import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationSettingsRequest
 import com.patloew.colocation.CoLocation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -26,13 +25,12 @@ import kotlinx.coroutines.launch
  * limitations under the License. */
 class MainViewModel(private val coLocation: CoLocation) : ViewModel(), LifecycleObserver {
 
-    private val locationRequest: LocationRequest =
-            LocationRequest.create()
-                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                    //.setSmallestDisplacement(1f)
-                    //.setNumUpdates(3)
-                    .setInterval(5000)
-                    .setFastestInterval(2500)
+    private val locationRequest: LocationRequest = LocationRequest.create()
+            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+            //.setSmallestDisplacement(1f)
+            //.setNumUpdates(3)
+            .setInterval(5000)
+            .setFastestInterval(2500)
 
 
     private val mutableLocationUpdates: MutableLiveData<Location> = MutableLiveData()
@@ -56,17 +54,14 @@ class MainViewModel(private val coLocation: CoLocation) : ViewModel(), Lifecycle
 
     private fun startLocationUpdatesAfterCheck() {
         viewModelScope.launch {
-            val settingsRequest = LocationSettingsRequest.Builder().addLocationRequest(locationRequest).build()
-            val settingsResult = coLocation.areSettingsSatisfied(settingsRequest)
-
+            val settingsResult = coLocation.checkLocationSettings(locationRequest)
             when (settingsResult) {
                 CoLocation.SettingsResult.Satisfied -> {
-                    coLocation.lastKnownLocation()?.run(mutableLocationUpdates::postValue)
+                    coLocation.getLastLocation()?.run(mutableLocationUpdates::postValue)
                     startLocationUpdates()
                 }
                 is CoLocation.SettingsResult.Resolvable -> mutableResolveLocationSettingsEvent.postValue(settingsResult)
-                else -> { /* Ignore for now, we can't resolve this anyway */
-                }
+                else -> { /* Ignore for now, we can't resolve this anyway */ }
             }
         }
     }
@@ -75,7 +70,7 @@ class MainViewModel(private val coLocation: CoLocation) : ViewModel(), Lifecycle
         locationUpdatesJob?.cancel()
         locationUpdatesJob = viewModelScope.launch {
             try {
-                coLocation.locationUpdates(locationRequest).collect { location ->
+                coLocation.getLocationUpdates(locationRequest).collect { location ->
                     Log.d("MainViewModel", "Location update received: $location")
                     mutableLocationUpdates.postValue(location)
                 }

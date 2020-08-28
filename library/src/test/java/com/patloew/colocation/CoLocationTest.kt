@@ -72,7 +72,7 @@ class CoLocationTest {
                 { locationProvider.lastLocation },
                 location,
                 null,
-                { coLocation.lastKnownLocation() }
+                { coLocation.getLastLocation() }
         )
     }
 }

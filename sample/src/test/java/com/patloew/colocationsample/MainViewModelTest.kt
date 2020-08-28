@@ -43,9 +43,9 @@ class MainViewModelTest {
     fun `onResume with location settings satisfied`() {
         val lastKnownLocation: Location = mockk()
         val updatedLocation: Location = mockk()
-        coEvery { coLocation.areSettingsSatisfied(any()) } returns CoLocation.SettingsResult.Satisfied
-        coEvery { coLocation.lastKnownLocation() } returns lastKnownLocation
-        every { coLocation.locationUpdates(any()) } returns flowOf(updatedLocation)
+        coEvery { coLocation.checkLocationSettings(any()) } returns CoLocation.SettingsResult.Satisfied
+        coEvery { coLocation.getLastLocation() } returns lastKnownLocation
+        every { coLocation.getLocationUpdates(any()) } returns flowOf(updatedLocation)
         val locations = mutableListOf<Location>()
         viewModel.locationUpdates.observeForever(locations::add)
 
