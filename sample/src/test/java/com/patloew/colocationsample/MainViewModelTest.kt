@@ -2,6 +2,7 @@ package com.patloew.colocationsample
 
 import android.location.Location
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.google.android.gms.location.LocationRequest
 import com.patloew.colocation.CoLocation
 import io.mockk.coEvery
 import io.mockk.every
@@ -43,7 +44,7 @@ class MainViewModelTest {
     fun `onResume with location settings satisfied`() {
         val lastKnownLocation: Location = mockk()
         val updatedLocation: Location = mockk()
-        coEvery { coLocation.checkLocationSettings(any()) } returns CoLocation.SettingsResult.Satisfied
+        coEvery { coLocation.checkLocationSettings(any<LocationRequest>()) } returns CoLocation.SettingsResult.Satisfied
         coEvery { coLocation.getLastLocation() } returns lastKnownLocation
         every { coLocation.getLocationUpdates(any()) } returns flowOf(updatedLocation)
         val locations = mutableListOf<Location>()
