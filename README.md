@@ -1,6 +1,6 @@
 # Coroutines Location API Library for Android
 
-[![Build Status](https://travis-ci.org/patloew/CoLocation.svg?branch=master)](https://travis-ci.org/patloew/CoLocation) [![codecov](https://codecov.io/gh/patloew/CoLocation/branch/master/graph/badge.svg)](https://codecov.io/gh/patloew/CoLocation) [![Download](https://api.bintray.com/packages/patloew/maven/CoLocation/images/download.svg) ](https://bintray.com/patloew/maven/CoLocation/_latestVersion) [![API](https://img.shields.io/badge/API-14%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=14)
+[![Build Status](https://travis-ci.org/patloew/CoLocation.svg?branch=main)](https://travis-ci.org/patloew/CoLocation) [![codecov](https://codecov.io/gh/patloew/CoLocation/branch/main/graph/badge.svg)](https://codecov.io/gh/patloew/CoLocation) [![Download](https://api.bintray.com/packages/patloew/maven/CoLocation/images/download.svg) ](https://bintray.com/patloew/maven/CoLocation/_latestVersion) [![API](https://img.shields.io/badge/API-14%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=14)
 
 This library wraps the Location APIs in Kotlin coroutines and `Flow`.
 
