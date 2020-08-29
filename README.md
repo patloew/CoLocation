@@ -70,6 +70,35 @@ override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) 
 
 A basic sample app is available in the `sample` project.
 
+# Setup
+
+The library is available on jCenter. Add the following to your `build.gradle`:
+
+```groovy
+dependencies {
+    implementation 'com.patloew.colocation:colocation:1.0.0'
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
+}
+```
+
+If you want to use a newer version of Google Play Services, declare the newer version in your `build.gradle`. This then
+overrides the version declared in the library.
+
+CoLocation only works with Android Gradle Plugin 3.0.0 or higher, since it uses Java 8 language features. Don't forget
+to set the source code compatibility to Java 8:
+
+```groovy
+android {
+  compileOptions {
+      sourceCompatibility JavaVersion.VERSION_1_8
+      targetCompatibility JavaVersion.VERSION_1_8
+  }
+  kotlinOptions {
+      jvmTarget = "1.8"
+  }
+}
+```
+
 # Testing
 
 When unit testing your app's classes, `CoLocation` and `CoGeocoder` behavior can be mocked easily. See
