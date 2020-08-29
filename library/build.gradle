@@ -1,7 +1,12 @@
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-apply plugin: 'maven-publish'
-apply plugin: 'com.jfrog.bintray'
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'org.jetbrains.dokka' version '0.10.1' apply false
+    id 'xyz.tynn.android.kdoc' version '0.1.0'
+    id 'xyz.tynn.android.sources' version '0.1.2'
+    id 'maven-publish'
+    id 'com.jfrog.bintray'
+}
 
 group = 'com.patloew.colocation'
 version = '1.0.0'
@@ -69,9 +74,28 @@ afterEvaluate {
             debug(MavenPublication) {
                 // Applies the component for the debug build variant.
                 from components.debug
-
                 artifactId = 'colocation-debug'
             }
+        }
+    }
+}
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    publications = ['release']
+    pkg {
+        repo = "maven"
+        name = "CoLocation"
+        websiteUrl = "https://github.com/patloew/CoLocation"
+        vcsUrl = "https://github.com/patloew/CoLocation.git"
+        licenses = ["Apache-2.0"]
+        publish = true
+        version {
+            name = "1.0.0"
         }
     }
 }
