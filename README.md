@@ -59,6 +59,7 @@ override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) 
     super.onActivityResult(requestCode, resultCode, data)
     if (requestCode == REQUEST_SHOW_SETTINGS && resultCode == Activity.RESULT_OK) {
         // Resolution success, location settings are now satisfied
+        startLocationUpdates()
     }
 }
 ```
