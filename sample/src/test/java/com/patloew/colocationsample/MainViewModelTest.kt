@@ -64,7 +64,7 @@ class MainViewModelTest {
         val addresses = mutableListOf<Address?>()
         viewModel.addressUpdates.observeForever(addresses::add)
 
-        viewModel.onResume()
+        viewModel.onStart()
 
         assertEquals(listOf(lastKnownLocation, updatedLocation), locations)
         assertEquals(listOf(lastKnownAddress, updatedAddress), addresses)

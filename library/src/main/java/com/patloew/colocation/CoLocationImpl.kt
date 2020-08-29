@@ -38,9 +38,7 @@ import kotlin.coroutines.resumeWithException
 internal class CoLocationImpl(private val context: Context) : CoLocation {
 
     private val locationProvider: FusedLocationProviderClient by lazy {
-        LocationServices.getFusedLocationProviderClient(
-            context
-        )
+        LocationServices.getFusedLocationProviderClient(context)
     }
     private val settings: SettingsClient by lazy { LocationServices.getSettingsClient(context) }
 

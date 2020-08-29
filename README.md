@@ -2,6 +2,76 @@
 
 This library wraps the Location APIs in Kotlin coroutines and `Flow`.
 
+# Usage
+
+Create a `CoLocation` or `CoGeocoding` instance, preferably by using a dependency injection framework. `CoLocation` is
+very similar to the classes provided by the Location APIs. Instead of `LocationServices.getFusedLocationProviderClient(context).lastLocation`
+you can use `coLocation.getLastLocation()`. Make sure to have the Location permission from Marshmallow on, if they are
+needed by your API requests.
+
+Example:
+
+```kotlin
+val coLocation = CoLocation.from(context);
+val coGeocoder = CoGeocoder.from(context);
+
+val locationRequest = LocationRequest.create()
+        .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+        .setInterval(5000)
+
+val locationUpdates: MutableLiveData<Location> = MutableLiveData()
+val addressUpdates: LiveData<Address?> = locationUpdates.switchMap { location ->
+        liveData { emit(coGeocoder.getAddressFromLocation(location)) }
+    }
+
+val job = viewModelScope.launch {
+    try {
+        coLocation.getLocationUpdates(locationRequest).collect(mutableLocationUpdates::postValue)
+    } catch (e: CancellationException) {
+        // Location updates cancelled
+    }
+}
+
+// The updates get canceled automatically when viewModelScope is cancelled.
+// If you want to cancel it before that, save the job and cancel it.
+job.cancel()
+```
+
+The following APIs are wrapped by this library:
+
+* `FusedLocationProviderClient` via `CoLocation`
+* `SettingsClient` via `CoLocation`
+* `Geocoder` via `CoGeocoder`
+
+Checking the location settings is simplified with this library, by providing a `SettingsResult` via
+`coLocation.checkLocationSettings(locationRequest)`:
+
+```kotlin
+val settingsResult = coLocation.checkLocationSettings(locationRequest)
+
+when (settingsResult) {
+    SettingsResult.Satisfied -> startLocationUpdates()
+    is SettingsResult.Resolvable -> settingsResult.resolve(activity, REQUEST_SHOW_SETTINGS)
+    else -> { /* Ignore for now, we can't resolve this anyway */ }
+}
+
+override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (requestCode == REQUEST_SHOW_SETTINGS && resultCode == Activity.RESULT_OK) {
+        // Resolution success, location settings are now satisfied
+    }
+}
+```
+
+# Sample
+
+A basic sample app is available in the `sample` project.
+
+# Testing
+
+When unit testing your app's classes, `CoLocation` and `CoGeocoder` behavior can be mocked easily. See
+`MainViewModelTest` in the `sample` project for an example test.
+
 # Donations
 
 If you like the library and want to support the creator for development/maintenance, you can make a donation in Bitcoin

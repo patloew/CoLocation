@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import java.util.concurrent.TimeUnit
 
 /* Copyright 2020 Patrick Löwenstein
@@ -71,30 +73,16 @@ class CoLocationTest {
         )
     }
 
-    @Test
-    fun `isLocationAvailable true`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun isLocationAvailable(locationAvailable: Boolean) {
         val locationAvailability = mockk<LocationAvailability> {
-            every { isLocationAvailable } returns true
+            every { isLocationAvailable } returns locationAvailable
         }
         testTaskWithCancelThrows(
             createTask = { locationProvider.locationAvailability },
             taskResult = locationAvailability,
-            expectedResult = true,
-            expectedErrorException = TestException(),
-            expectedCancelException = TaskCancelledException(""),
-            coLocationCall = { coLocation.isLocationAvailable() }
-        )
-    }
-
-    @Test
-    fun `isLocationAvailable false`() {
-        val locationAvailability = mockk<LocationAvailability> {
-            every { isLocationAvailable } returns false
-        }
-        testTaskWithCancelThrows(
-            createTask = { locationProvider.locationAvailability },
-            taskResult = locationAvailability,
-            expectedResult = false,
+            expectedResult = locationAvailable,
             expectedErrorException = TestException(),
             expectedCancelException = TaskCancelledException(""),
             coLocationCall = { coLocation.isLocationAvailable() }
@@ -127,15 +115,16 @@ class CoLocationTest {
         )
     }
 
-    @Test
-    fun setMockMode() {
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun setMockMode(mockMode: Boolean) {
         testTaskWithCancelThrows(
-            createTask = { locationProvider.setMockMode(true) },
+            createTask = { locationProvider.setMockMode(mockMode) },
             taskResult = null,
             expectedResult = Unit,
             expectedErrorException = TestException(),
             expectedCancelException = TaskCancelledException(""),
-            coLocationCall = { coLocation.setMockMode(true) }
+            coLocationCall = { coLocation.setMockMode(mockMode) }
         )
     }
 

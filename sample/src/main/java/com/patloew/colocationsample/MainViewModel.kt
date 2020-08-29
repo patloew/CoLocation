@@ -50,12 +50,12 @@ class MainViewModel(
     private var locationUpdatesJob: Job? = null
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
-    fun onResume() {
+    fun onStart() {
         startLocationUpdatesAfterCheck()
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-    fun onPause() {
+    fun onStop() {
         locationUpdatesJob?.cancel()
         locationUpdatesJob = null
     }
