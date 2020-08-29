@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.IntentSender
-import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import androidx.annotation.RequiresPermission
@@ -16,7 +15,6 @@ import com.google.android.gms.location.SettingsClient
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import java.util.Locale
 
 /* Copyright 2020 Patrick Löwenstein
  *
@@ -33,8 +31,7 @@ import java.util.Locale
  * limitations under the License. */
 
 /**
- * CoLocation wraps [FusedLocationProviderClient], [SettingsClient] in Kotlin coroutines and [Flow].
- * [Geocoder] methods are provided for convenience.
+ * CoLocation wraps [FusedLocationProviderClient] and [SettingsClient] in Kotlin coroutines and [Flow].
  */
 interface CoLocation {
 
@@ -128,144 +125,6 @@ interface CoLocation {
      */
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
     suspend fun setMockMode(isMockMode: Boolean)
-
-    /**
-     * Returns an Address that is known to describe the area immediately surrounding the given [location], if available.
-     * The returned address will be localized for the [locale] and defaults to [Locale.getDefault].
-     *
-     * The returned value may be obtained by means of a network lookup. The result is a best guess and is not
-     * guaranteed to be meaningful or correct. It may be useful to call this method from a thread separate from
-     * your primary UI thread, e.g. like:
-     *
-     *     withContext(Dispatchers.Default) { coLocation.getAddressFromLocation(location) }
-     */
-    fun getAddressFromLocation(location: Location, locale: Locale = Locale.getDefault()): Address?
-
-    /**
-     * Returns an Address that is known to describe the area immediately surrounding the given [latitude] and
-     * [longitude], if available. The returned address will be localized for the [locale] and defaults to
-     * [Locale.getDefault].
-     *
-     * The returned value may be obtained by means of a network lookup. The result is a best guess and is not
-     * guaranteed to be meaningful or correct. It may be useful to call this method from a thread separate from
-     * your primary UI thread, e.g. like:
-     *
-     *     withContext(Dispatchers.Default) { coLocation.getAddressFromLocation(latitude, longitude) }
-     */
-    fun getAddressFromLocation(latitude: Double, longitude: Double, locale: Locale = Locale.getDefault()): Address?
-
-    /**
-     * Returns an Address that is known to describe the named location, if available. The named location may be a place
-     * name such as "Dalvik, Iceland", an address such as "1600 Amphitheatre Parkway, Mountain View, CA", an airport
-     * code such as "SFO", etc..  The returned address will be localized for the [locale] and defaults to
-     * [Locale.getDefault].
-     *
-     * The query will block and the returned value will be obtained by means of a network lookup. The result is a best
-     * guess and is not guaranteed to be meaningful or correct. It may be useful to call this method from a thread
-     * separate from your primary UI thread, e.g. like:
-     *
-     *     withContext(Dispatchers.Default) { coLocation.getAddressFromLocationName(locationName) }
-     */
-    fun getAddressFromLocationName(locationName: String, locale: Locale = Locale.getDefault()): Address?
-
-    /**
-     * Returns an Address that is known to describe the named location, if available. The named location may be a place
-     * name such as "Dalvik, Iceland", an address such as "1600 Amphitheatre Parkway, Mountain View, CA", an airport
-     * code such as "SFO", etc.. The returned address will be localized for the [locale] and defaults to
-     * [Locale.getDefault].
-     *
-     * A bounding box for the search results is specified by the Latitude and Longitude of the Lower Left point and
-     * Upper Right point of the box.
-     *
-     * The query will block and the returned value will be obtained by means of a network lookup. The result is a best
-     * guess and is not guaranteed to be meaningful or correct. It may be useful to call this method from a thread
-     * separate from your primary UI thread, e.g. like:
-     *
-     *     withContext(Dispatchers.Default) { coLocation.getAddressFromLocationName(locationName) }
-     */
-    fun getAddressFromLocationName(
-        locationName: String,
-        lowerLeftLatitude: Double,
-        lowerLeftLongitude: Double,
-        upperRightLatitude: Double,
-        upperRightLongitude: Double,
-        locale: Locale = Locale.getDefault()
-    ): Address?
-
-    /**
-     * Returns a list of Addresses that are known to describe the area immediately surrounding the given [location].
-     * The returned addresses will be localized for the [locale] and defaults to [Locale.getDefault].
-     *
-     * The returned values may be obtained by means of a network lookup. The results are a best guess and are not
-     * guaranteed to be meaningful or correct. It may be useful to call this method from a thread separate from
-     * your primary UI thread, e.g. like:
-     *
-     *     withContext(Dispatchers.Default) { coLocation.getAddressListFromLocation(location) }
-     */
-    fun getAddressListFromLocation(
-        location: Location,
-        locale: Locale = Locale.getDefault(),
-        maxResults: Int = 5
-    ): List<Address>
-
-
-    /**
-     * Returns a list of Addresses that are known to describe the area immediately surrounding the given [latitude]
-     * and [longitude]. The returned addresses will be localized for the [locale] and defaults to [Locale.getDefault].
-     *
-     * The returned values may be obtained by means of a network lookup. The results are a best guess and are not
-     * guaranteed to be meaningful or correct. It may be useful to call this method from a thread separate from
-     * your primary UI thread, e.g. like:
-     *
-     *     withContext(Dispatchers.Default) { coLocation.getAddressListFromLocation(latitude, longitude) }
-     */
-    fun getAddressListFromLocation(
-        latitude: Double,
-        longitude: Double,
-        locale: Locale = Locale.getDefault(),
-        maxResults: Int = 5
-    ): List<Address>
-
-    /**
-     * Returns an array of Addresses that are known to describe the named location, which may be a place name such
-     * as "Dalvik, Iceland", an address such as "1600 Amphitheatre Parkway, Mountain View, CA", an airport code such
-     * as "SFO", etc..  The returned addresses will be localized for the [locale] and defaults to [Locale.getDefault].
-     *
-     * The query will block and returned values will be obtained by means of a network lookup. The results are a best
-     * guess and are not guaranteed to be meaningful or correct. It may be useful to call this method from a thread
-     * separate from your primary UI thread, e.g. like:
-     *
-     *     withContext(Dispatchers.Default) { coLocation.getAddressListFromLocationName(locationName) }
-     */
-    fun getAddressListFromLocationName(
-        locationName: String,
-        locale: Locale = Locale.getDefault(),
-        maxResults: Int = 5
-    ): List<Address>
-
-    /**
-     * Returns an array of Addresses that are known to describe the named location, which may be a place name such
-     * as "Dalvik, Iceland", an address such as "1600 Amphitheatre Parkway, Mountain View, CA", an airport code such
-     * as "SFO", etc.. The returned addresses will be localized for the [locale] and defaults to [Locale.getDefault].
-     *
-     * A bounding box for the search results is specified by the Latitude and Longitude of the Lower Left point and
-     * Upper Right point of the box.
-     *
-     * The query will block and returned values will be obtained by means of a network lookup. The results are a best
-     * guess and are not guaranteed to be meaningful or correct. It may be useful to call this method from a thread
-     * separate from your primary UI thread, e.g. like:
-     *
-     *     withContext(Dispatchers.Default) { coLocation.getAddressListFromLocationName(locationName) }
-     */
-    fun getAddressListFromLocationName(
-        locationName: String,
-        lowerLeftLatitude: Double,
-        lowerLeftLongitude: Double,
-        upperRightLatitude: Double,
-        upperRightLongitude: Double,
-        locale: Locale = Locale.getDefault(),
-        maxResults: Int = 5
-    ): List<Address>
 
     /** Checks if the relevant system settings are enabled on the device to carry out the desired location requests. */
     suspend fun checkLocationSettings(locationSettingsRequest: LocationSettingsRequest): SettingsResult

@@ -109,63 +109,6 @@ internal class CoLocationImpl(private val context: Context) : CoLocation {
             }
         }.buffer(capacity)
 
-    override fun getAddressFromLocation(location: Location, locale: Locale): Address? =
-        getAddressListFromLocation(location.latitude, location.longitude, locale, 1).firstOrNull()
-
-    override fun getAddressFromLocation(latitude: Double, longitude: Double, locale: Locale): Address? =
-        getAddressListFromLocation(latitude, longitude, locale, 1).firstOrNull()
-
-    override fun getAddressFromLocationName(locationName: String, locale: Locale): Address? =
-        getAddressListFromLocationName(locationName, locale, 1).firstOrNull()
-
-    override fun getAddressFromLocationName(
-        locationName: String,
-        lowerLeftLatitude: Double,
-        lowerLeftLongitude: Double,
-        upperRightLatitude: Double,
-        upperRightLongitude: Double,
-        locale: Locale
-    ): Address? = getAddressListFromLocationName(
-        locationName,
-        lowerLeftLatitude,
-        lowerLeftLongitude,
-        upperRightLatitude,
-        upperRightLongitude,
-        locale,
-        1
-    ).firstOrNull()
-
-    override fun getAddressListFromLocation(location: Location, locale: Locale, maxResults: Int): List<Address> =
-        getAddressListFromLocation(location.latitude, location.longitude, locale, maxResults)
-
-    override fun getAddressListFromLocation(
-        latitude: Double,
-        longitude: Double,
-        locale: Locale,
-        maxResults: Int
-    ): List<Address> = Geocoder(context, locale).getFromLocation(latitude, longitude, maxResults)
-
-    override fun getAddressListFromLocationName(locationName: String, locale: Locale, maxResults: Int): List<Address> =
-        Geocoder(context, locale).getFromLocationName(locationName, maxResults)
-
-    override fun getAddressListFromLocationName(
-        locationName: String,
-        lowerLeftLatitude: Double,
-        lowerLeftLongitude: Double,
-        upperRightLatitude: Double,
-        upperRightLongitude: Double,
-        locale: Locale,
-        maxResults: Int
-    ): List<Address> = Geocoder(context, locale)
-        .getFromLocationName(
-            locationName,
-            maxResults,
-            lowerLeftLatitude,
-            lowerLeftLongitude,
-            upperRightLatitude,
-            upperRightLongitude
-        )
-
     override suspend fun checkLocationSettings(locationSettingsRequest: LocationSettingsRequest): CoLocation.SettingsResult =
         suspendCancellableCoroutine { cont ->
             settings.checkLocationSettings(locationSettingsRequest)

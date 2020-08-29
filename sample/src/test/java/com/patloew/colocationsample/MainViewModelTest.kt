@@ -1,8 +1,10 @@
 package com.patloew.colocationsample
 
+import android.location.Address
 import android.location.Location
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.google.android.gms.location.LocationRequest
+import com.patloew.colocation.CoGeocoder
 import com.patloew.colocation.CoLocation
 import io.mockk.coEvery
 import io.mockk.every
@@ -10,7 +12,9 @@ import io.mockk.mockk
 import junit.framework.Assert.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -34,24 +38,35 @@ class MainViewModelTest {
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     private val coLocation: CoLocation = mockk()
+    private val coGeocoder: CoGeocoder = mockk()
 
-    private val viewModel = MainViewModel(coLocation)
+    private val viewModel = MainViewModel(coLocation, coGeocoder)
 
     @Before
     fun before() = Dispatchers.setMain(Dispatchers.Unconfined)
+
+    @After
+    fun after() = Dispatchers.resetMain()
 
     @Test
     fun `onResume with location settings satisfied`() {
         val lastKnownLocation: Location = mockk()
         val updatedLocation: Location = mockk()
+        val lastKnownAddress: Address = mockk()
+        val updatedAddress: Address = mockk()
         coEvery { coLocation.checkLocationSettings(any<LocationRequest>()) } returns CoLocation.SettingsResult.Satisfied
         coEvery { coLocation.getLastLocation() } returns lastKnownLocation
+        coEvery { coGeocoder.getAddressFromLocation(lastKnownLocation) } returns lastKnownAddress
+        coEvery { coGeocoder.getAddressFromLocation(updatedLocation) } returns updatedAddress
         every { coLocation.getLocationUpdates(any()) } returns flowOf(updatedLocation)
         val locations = mutableListOf<Location>()
         viewModel.locationUpdates.observeForever(locations::add)
+        val addresses = mutableListOf<Address?>()
+        viewModel.addressUpdates.observeForever(addresses::add)
 
         viewModel.onResume()
 
         assertEquals(listOf(lastKnownLocation, updatedLocation), locations)
+        assertEquals(listOf(lastKnownAddress, updatedAddress), addresses)
     }
 }

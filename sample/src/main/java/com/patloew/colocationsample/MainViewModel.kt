@@ -5,6 +5,7 @@ import android.location.Location
 import android.util.Log
 import androidx.lifecycle.*
 import com.google.android.gms.location.LocationRequest
+import com.patloew.colocation.CoGeocoder
 import com.patloew.colocation.CoLocation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -24,7 +25,10 @@ import kotlinx.coroutines.launch
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License. */
-class MainViewModel(private val coLocation: CoLocation) : ViewModel(), LifecycleObserver {
+class MainViewModel(
+    private val coLocation: CoLocation,
+    private val coGeocoder: CoGeocoder
+) : ViewModel(), LifecycleObserver {
 
     private val locationRequest: LocationRequest = LocationRequest.create()
         .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -36,7 +40,9 @@ class MainViewModel(private val coLocation: CoLocation) : ViewModel(), Lifecycle
 
     private val mutableLocationUpdates: MutableLiveData<Location> = MutableLiveData()
     val locationUpdates: LiveData<Location> = mutableLocationUpdates
-    val addressUpdates: LiveData<Address?> = locationUpdates.map(coLocation::getAddressFromLocation)
+    val addressUpdates: LiveData<Address?> = locationUpdates.switchMap { location ->
+        liveData { emit(coGeocoder.getAddressFromLocation(location)) }
+    }
 
     private val mutableResolveSettingsEvent: MutableLiveData<CoLocation.SettingsResult.Resolvable> = MutableLiveData()
     val resolveSettingsEvent: LiveData<CoLocation.SettingsResult.Resolvable> = mutableResolveSettingsEvent

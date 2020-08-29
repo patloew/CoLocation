@@ -17,6 +17,7 @@ import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.material.snackbar.Snackbar
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.LibsBuilder
+import com.patloew.colocation.CoGeocoder
 import com.patloew.colocation.CoLocation
 import java.text.DateFormat
 import java.util.Date
@@ -48,7 +49,10 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T =
-                MainViewModel(CoLocation.from(this@MainActivity)) as T
+                MainViewModel(
+                    CoLocation.from(this@MainActivity),
+                    CoGeocoder.from(this@MainActivity)
+                ) as T
         }
     }
 
