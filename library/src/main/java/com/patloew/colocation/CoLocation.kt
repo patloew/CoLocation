@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.IntentSender
-import android.location.Geocoder
 import android.location.Location
 import androidx.annotation.RequiresPermission
 import com.google.android.gms.common.api.ResolvableApiException
@@ -59,6 +58,22 @@ interface CoLocation {
      */
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
     suspend fun isLocationAvailable(): Boolean
+
+    /**
+     * Returns a single location fix on the device.
+     *
+     * Unlike [getLastLocation], this method could cause active location computation on the device.
+     *
+     * If a location is not available, which should happen very rarely, null will be returned. The best accuracy
+     * available while respecting the location permissions will be returned.
+     *
+     * This method may return locations that are a few seconds old, but never returns much older locations.
+     * This is suitable for foreground applications that need a single fresh current location.
+     *
+     * @param priority One the PRIORITY_* in [LocationRequest].
+     */
+    @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
+    suspend fun getCurrentLocation(priority: Int): Location?
 
     /**
      * Returns the best most recent location currently available.

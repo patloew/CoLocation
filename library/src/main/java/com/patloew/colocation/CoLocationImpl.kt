@@ -2,13 +2,12 @@ package com.patloew.colocation
 
 import android.Manifest
 import android.content.Context
-import android.location.Address
-import android.location.Geocoder
 import android.location.Location
 import android.os.Looper
 import androidx.annotation.RequiresPermission
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
+import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -18,7 +17,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
-import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -49,6 +47,20 @@ internal class CoLocationImpl(private val context: Context) : CoLocation {
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
     override suspend fun isLocationAvailable(): Boolean =
         locationProvider.locationAvailability.asCoroutine { it.isLocationAvailable }
+
+    @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
+    override suspend fun getCurrentLocation(priority: Int): Location? =
+        suspendCancellableCoroutine { cont ->
+            val cancellationTokenSource = CancellationTokenSource()
+
+            locationProvider.getCurrentLocation(priority, cancellationTokenSource.token).apply {
+                addOnSuccessListener { cont.resume(it) }
+                addOnCanceledListener { cont.resume(null) }
+                addOnFailureListener { cont.resumeWithException(it) }
+            }
+
+            cont.invokeOnCancellation { cancellationTokenSource.cancel() }
+        }
 
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
     override suspend fun getLastLocation(): Location? =
