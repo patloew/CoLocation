@@ -113,14 +113,11 @@ class CoLocationTest {
         LocationRequest.PRIORITY_NO_POWER
     ])
     fun `cancelling getCurrentLocation cancels task`(priority: Int) {
-        lateinit var token: CancellationToken
+        val tokenSlot = slot<CancellationToken>()
 
         every {
-            locationProvider.getCurrentLocation(priority, any())
-        } answers {
-            token = arg(1)
-            mockk(relaxed = true)
-        }
+            locationProvider.getCurrentLocation(priority, capture(tokenSlot))
+        } returns mockk(relaxed = true)
 
         val deferred = testCoroutineScope.async(start = CoroutineStart.UNDISPATCHED) {
             coLocation.getCurrentLocation(priority)
@@ -129,7 +126,7 @@ class CoLocationTest {
         deferred.cancel()
 
         assertTrue(deferred.isCancelled)
-        assertTrue(token.isCancellationRequested)
+        assertTrue(tokenSlot.captured.isCancellationRequested)
     }
 
     @Test
