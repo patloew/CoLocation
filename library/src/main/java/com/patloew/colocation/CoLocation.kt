@@ -60,15 +60,15 @@ interface CoLocation {
     suspend fun isLocationAvailable(): Boolean
 
     /**
-     * Returns a single location fix on the device.
+     * Returns a single current location fix on the device. Unlike [getLastLocation()] that returns a cached location,
+     * this method could cause active location computation on the device. A single fresh location will be returned if
+     * the device location can be determined within reasonable time (tens of seconds), otherwise null will be returned.
      *
-     * Unlike [getLastLocation], this method could cause active location computation on the device.
+     * This method may return locations that are a few seconds old, but never returns much older locations. This is
+     * suitable for foreground applications that need a single fresh current location.
      *
-     * If a location is not available, which should happen very rarely, null will be returned. The best accuracy
-     * available while respecting the location permissions will be returned.
-     *
-     * This method may return locations that are a few seconds old, but never returns much older locations.
-     * This is suitable for foreground applications that need a single fresh current location.
+     * Background apps calling this method will be throttled under background location limits, so background apps may
+     * find the method returns null locations more often.
      *
      * @param priority One the PRIORITY_* in [LocationRequest].
      */
