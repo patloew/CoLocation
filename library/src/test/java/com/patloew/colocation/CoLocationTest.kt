@@ -4,10 +4,7 @@ import android.content.Context
 import android.location.Location
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
-import com.google.android.gms.tasks.OnCanceledListener
-import com.google.android.gms.tasks.OnFailureListener
-import com.google.android.gms.tasks.OnSuccessListener
-import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.*
 import io.mockk.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
@@ -87,6 +84,49 @@ class CoLocationTest {
             expectedCancelException = TaskCancelledException(""),
             coLocationCall = { coLocation.isLocationAvailable() }
         )
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [
+        LocationRequest.PRIORITY_HIGH_ACCURACY,
+        LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY,
+        LocationRequest.PRIORITY_LOW_POWER,
+        LocationRequest.PRIORITY_NO_POWER
+    ])
+    fun getCurrentLocation(priority: Int) {
+        val location = mockk<Location>()
+        testTaskWithCancelReturns(
+            createTask = { locationProvider.getCurrentLocation(priority, any()) },
+            taskResult = location,
+            expectedResult = location,
+            expectedErrorException = TestException(),
+            cancelResult = null,
+            coLocationCall = { coLocation.getCurrentLocation(priority) }
+        )
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [
+        LocationRequest.PRIORITY_HIGH_ACCURACY,
+        LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY,
+        LocationRequest.PRIORITY_LOW_POWER,
+        LocationRequest.PRIORITY_NO_POWER
+    ])
+    fun `cancelling getCurrentLocation cancels task`(priority: Int) {
+        val tokenSlot = slot<CancellationToken>()
+
+        every {
+            locationProvider.getCurrentLocation(priority, capture(tokenSlot))
+        } returns mockk(relaxed = true)
+
+        val deferred = testCoroutineScope.async(start = CoroutineStart.UNDISPATCHED) {
+            coLocation.getCurrentLocation(priority)
+        }
+
+        deferred.cancel()
+
+        assertTrue(deferred.isCancelled)
+        assertTrue(tokenSlot.captured.isCancellationRequested)
     }
 
     @Test
