@@ -72,7 +72,7 @@ A basic sample app is available in the `sample` project.
 
 # Setup
 
-The library is available on jCenter. Add the following to your `build.gradle`:
+The library is available on Maven Central. Add the following to your `build.gradle`:
 
 ```groovy
 dependencies {

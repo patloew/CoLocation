@@ -3,16 +3,14 @@ plugins {
     id 'kotlin-android'
     id 'de.mannodermaus.android-junit5'
     id 'jacoco'
-    id 'org.jetbrains.dokka' version '0.10.1' apply false
-    id 'xyz.tynn.android.kdoc' version '0.1.0'
-    id 'xyz.tynn.android.sources' version '0.1.2'
-    id 'maven-publish'
-    id 'com.jfrog.bintray'
 }
 
-group = 'com.patloew.colocation'
-version = '1.0.0'
-project.archivesBaseName = 'colocation'
+ext {
+    RELEASE_REPOSITORY_URL = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+    SNAPSHOT_REPOSITORY_URL = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+}
+
+apply plugin: "com.vanniktech.maven.publish"
 
 android {
     compileSdkVersion 30
@@ -62,44 +60,3 @@ dependencies {
 }
 
 task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest'])
-
-// Because the components are created only during the afterEvaluate phase, you must
-// configure your publications using the afterEvaluate() lifecycle method.
-afterEvaluate {
-    publishing {
-        publications {
-            // Creates a Maven publication called "release".
-            release(MavenPublication) {
-                // Applies the component for the release build variant.
-                from components.release
-                artifactId = 'colocation'
-            }
-            // Creates a Maven publication called “debug”.
-            debug(MavenPublication) {
-                // Applies the component for the debug build variant.
-                from components.debug
-                artifactId = 'colocation-debug'
-            }
-        }
-    }
-}
-
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
-bintray {
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
-    publications = ['release']
-    pkg {
-        repo = "maven"
-        name = "CoLocation"
-        websiteUrl = "https://github.com/patloew/CoLocation"
-        vcsUrl = "https://github.com/patloew/CoLocation.git"
-        licenses = ["Apache-2.0"]
-        publish = true
-        version {
-            name = "1.0.0"
-        }
-    }
-}
