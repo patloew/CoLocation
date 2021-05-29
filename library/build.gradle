@@ -12,6 +12,10 @@ ext {
 
 apply plugin: "com.vanniktech.maven.publish"
 
+jacoco {
+    toolVersion = "0.8.7"
+}
+
 android {
     compileSdkVersion 30
 
