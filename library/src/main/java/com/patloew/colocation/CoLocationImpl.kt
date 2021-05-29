@@ -12,7 +12,7 @@ import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
@@ -103,7 +103,7 @@ internal class CoLocationImpl(private val context: Context) : CoLocation {
             val callback = object : LocationCallback() {
                 private var counter: Int = 0
                 override fun onLocationResult(result: LocationResult) {
-                    result.lastLocation?.also { location -> sendBlocking(location) }
+                    trySendBlocking(result.lastLocation)
                     if (locationRequest.numUpdates == ++counter) close()
                 }
             }.let(::ClearableLocationCallback) // Needed since we would have memory leaks otherwise
@@ -158,11 +158,11 @@ private class ClearableLocationCallback(callback: LocationCallback) : LocationCa
 
     private var callback: LocationCallback? = callback
 
-    override fun onLocationAvailability(locationAvailability: LocationAvailability?) {
+    override fun onLocationAvailability(locationAvailability: LocationAvailability) {
         callback?.onLocationAvailability(locationAvailability)
     }
 
-    override fun onLocationResult(locationResult: LocationResult?) {
+    override fun onLocationResult(locationResult: LocationResult) {
         callback?.onLocationResult(locationResult)
     }
 
