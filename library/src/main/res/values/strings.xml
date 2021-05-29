@@ -7,7 +7,7 @@
     <string name="library_colocation_libraryName">CoLocation</string>
     <string name="library_colocation_libraryDescription">This library wraps the Location APIs in Kotlin coroutines and Flow.</string>
     <string name="library_colocation_libraryWebsite">https://github.com/patloew/CoLocation</string>
-    <string name="library_colocation_libraryVersion">1.0.0</string>
+    <string name="library_colocation_libraryVersion">1.1.0</string>
     <!-- OpenSource section -->
     <string name="library_colocation_isOpenSource">true</string>
     <string name="library_colocation_repositoryLink">https://github.com/patloew/CoLocation</string>

@@ -1,6 +1,6 @@
 # Coroutines Location API Library for Android
 
-[![Build Status](https://travis-ci.org/patloew/CoLocation.svg?branch=main)](https://travis-ci.org/patloew/CoLocation) [![codecov](https://codecov.io/gh/patloew/CoLocation/branch/main/graph/badge.svg)](https://codecov.io/gh/patloew/CoLocation) [![Download](https://api.bintray.com/packages/patloew/maven/CoLocation/images/download.svg) ](https://bintray.com/patloew/maven/CoLocation/_latestVersion) [![API](https://img.shields.io/badge/API-14%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=14)
+[![Build Status](https://travis-ci.org/patloew/CoLocation.svg?branch=main)](https://travis-ci.org/patloew/CoLocation) [![codecov](https://codecov.io/gh/patloew/CoLocation/branch/main/graph/badge.svg)](https://codecov.io/gh/patloew/CoLocation) [![Maven Central](https://img.shields.io/maven-central/v/com.patloew.colocation/colocation.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.patloew.colocation%22%20AND%20a:%22colocation%22) [![API](https://img.shields.io/badge/API-14%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=14)
 
 This library wraps the Location APIs in Kotlin coroutines and `Flow`.
 
@@ -76,8 +76,8 @@ The library is available on Maven Central. Add the following to your `build.grad
 
 ```groovy
 dependencies {
-    implementation 'com.patloew.colocation:colocation:1.0.0'
-    implementation 'com.google.android.gms:play-services-location:17.0.0'
+    implementation 'com.patloew.colocation:colocation:1.1.0'
+    implementation 'com.google.android.gms:play-services-location:18.0.0'
 }
 ```
 
