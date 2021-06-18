@@ -8,7 +8,6 @@ import androidx.annotation.RequiresPermission
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.CancellationTokenSource
-import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
@@ -17,6 +16,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -42,11 +42,13 @@ internal class CoLocationImpl(private val context: Context) : CoLocation {
 
     private val cancelledMessage = "Task was cancelled"
 
-    override suspend fun flushLocations() = locationProvider.flushLocations().asCoroutine()
+    override suspend fun flushLocations() {
+        locationProvider.flushLocations().await()
+    }
 
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
     override suspend fun isLocationAvailable(): Boolean =
-        locationProvider.locationAvailability.asCoroutine { it.isLocationAvailable }
+        locationProvider.locationAvailability.await().isLocationAvailable
 
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
     override suspend fun getCurrentLocation(priority: Int): Location? =
@@ -63,14 +65,7 @@ internal class CoLocationImpl(private val context: Context) : CoLocation {
         }
 
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
-    override suspend fun getLastLocation(): Location? =
-        suspendCancellableCoroutine { cont ->
-            locationProvider.lastLocation.apply {
-                addOnSuccessListener { cont.resume(it) }
-                addOnCanceledListener { cont.resume(null) }
-                addOnFailureListener { cont.resumeWithException(it) }
-            }
-        }
+    override suspend fun getLastLocation(): Location? = locationProvider.lastLocation.await()
 
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
     override suspend fun getLocationUpdate(locationRequest: LocationRequest): Location =
@@ -137,19 +132,14 @@ internal class CoLocationImpl(private val context: Context) : CoLocation {
         checkLocationSettings(LocationSettingsRequest.Builder().addLocationRequest(locationRequest).build())
 
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
-    override suspend fun setMockLocation(location: Location) = locationProvider.setMockLocation(location).asCoroutine()
+    override suspend fun setMockLocation(location: Location) {
+        locationProvider.setMockLocation(location).await()
+    }
 
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
-    override suspend fun setMockMode(isMockMode: Boolean) = locationProvider.setMockMode(isMockMode).asCoroutine()
-
-    private suspend inline fun <T, R> Task<T>.asCoroutine(crossinline transformResult: (T) -> R): R =
-        suspendCancellableCoroutine { cont ->
-            addOnSuccessListener { cont.resume(transformResult(it)) }
-            addOnCanceledListener { cont.resumeWithException(TaskCancelledException(cancelledMessage)) }
-            addOnFailureListener { cont.resumeWithException(it) }
-        }
-
-    private suspend inline fun Task<Void>.asCoroutine() = asCoroutine { Unit }
+    override suspend fun setMockMode(isMockMode: Boolean) {
+        locationProvider.setMockMode(isMockMode).await()
+    }
 
 }
 

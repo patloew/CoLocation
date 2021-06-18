@@ -65,7 +65,6 @@ class CoLocationTest {
             taskResult = null,
             expectedResult = Unit,
             expectedErrorException = TestException(),
-            expectedCancelException = TaskCancelledException(""),
             coLocationCall = { coLocation.flushLocations() }
         )
     }
@@ -81,18 +80,19 @@ class CoLocationTest {
             taskResult = locationAvailability,
             expectedResult = locationAvailable,
             expectedErrorException = TestException(),
-            expectedCancelException = TaskCancelledException(""),
             coLocationCall = { coLocation.isLocationAvailable() }
         )
     }
 
     @ParameterizedTest
-    @ValueSource(ints = [
-        LocationRequest.PRIORITY_HIGH_ACCURACY,
-        LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY,
-        LocationRequest.PRIORITY_LOW_POWER,
-        LocationRequest.PRIORITY_NO_POWER
-    ])
+    @ValueSource(
+        ints = [
+            LocationRequest.PRIORITY_HIGH_ACCURACY,
+            LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY,
+            LocationRequest.PRIORITY_LOW_POWER,
+            LocationRequest.PRIORITY_NO_POWER
+        ]
+    )
     fun getCurrentLocation(priority: Int) {
         val location = mockk<Location>()
         testTaskWithCancelReturns(
@@ -106,12 +106,14 @@ class CoLocationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = [
-        LocationRequest.PRIORITY_HIGH_ACCURACY,
-        LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY,
-        LocationRequest.PRIORITY_LOW_POWER,
-        LocationRequest.PRIORITY_NO_POWER
-    ])
+    @ValueSource(
+        ints = [
+            LocationRequest.PRIORITY_HIGH_ACCURACY,
+            LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY,
+            LocationRequest.PRIORITY_LOW_POWER,
+            LocationRequest.PRIORITY_NO_POWER
+        ]
+    )
     fun `cancelling getCurrentLocation cancels task`(priority: Int) {
         val tokenSlot = slot<CancellationToken>()
 
@@ -132,12 +134,11 @@ class CoLocationTest {
     @Test
     fun getLastLocation() {
         val location = mockk<Location>()
-        testTaskWithCancelReturns(
+        testTaskWithCancelThrows(
             createTask = { locationProvider.lastLocation },
             taskResult = location,
             expectedResult = location,
             expectedErrorException = TestException(),
-            cancelResult = null,
             coLocationCall = { coLocation.getLastLocation() }
         )
     }
@@ -150,7 +151,6 @@ class CoLocationTest {
             taskResult = null,
             expectedResult = Unit,
             expectedErrorException = TestException(),
-            expectedCancelException = TaskCancelledException(""),
             coLocationCall = { coLocation.setMockLocation(location) }
         )
     }
@@ -163,7 +163,6 @@ class CoLocationTest {
             taskResult = null,
             expectedResult = Unit,
             expectedErrorException = TestException(),
-            expectedCancelException = TaskCancelledException(""),
             coLocationCall = { coLocation.setMockMode(mockMode) }
         )
     }
@@ -374,100 +373,131 @@ class CoLocationTest {
             coLocationCall = { coLocation.checkLocationSettings(locationRequest) }
         )
     }
-}
 
-private fun <T, R> testTaskWithCancelThrows(
-    createTask: MockKMatcherScope.() -> Task<T>,
-    taskResult: T,
-    expectedResult: R,
-    expectedErrorException: Exception,
-    expectedCancelException: Exception,
-    coLocationCall: suspend CoroutineScope.() -> R
-) {
-    testTaskSuccess(createTask, taskResult, expectedResult, coLocationCall)
-    testTaskFailure(createTask, expectedErrorException, coLocationCall)
-    assertThrows(expectedCancelException::class.java) { testTaskCancel(createTask, coLocationCall) }
-}
-
-private fun <T, R> testTaskWithCancelReturns(
-    createTask: MockKMatcherScope.() -> Task<T>,
-    taskResult: T,
-    expectedResult: R?,
-    expectedErrorException: Exception,
-    cancelResult: R?,
-    coLocationCall: suspend CoroutineScope.() -> R
-) {
-    testTaskSuccess(createTask, taskResult, expectedResult, coLocationCall)
-    testTaskFailure(createTask, expectedErrorException, coLocationCall)
-    assertEquals(cancelResult, testTaskCancel(createTask, coLocationCall))
-}
-
-private fun <T, R> testTaskCancel(
-    createTask: MockKMatcherScope.() -> Task<T>,
-    coLocationCall: suspend CoroutineScope.() -> R
-): R? {
-    val cancelTask = mockTask<T>()
-    every { createTask() } returns cancelTask
-
-    cancelTask.mockCanceled()
-
-    return runBlocking { coLocationCall() }
-}
-
-private fun <T, R> testTaskSuccess(
-    createTask: MockKMatcherScope.() -> Task<T>,
-    taskResult: T,
-    expectedResult: R,
-    coLocationCall: suspend CoroutineScope.() -> R
-) {
-    val successTask = mockTask<T>()
-    every { createTask() } returns successTask
-
-    successTask.mockSuccess(taskResult)
-
-    assertEquals(expectedResult, runBlocking { coLocationCall() })
-}
-
-private fun <T, R> testTaskFailure(
-    createTask: MockKMatcherScope.() -> Task<T>,
-    expectedErrorException: Exception,
-    coLocationCall: suspend CoroutineScope.() -> R
-) {
-    val errorTask = mockTask<T>()
-    every { createTask() } returns errorTask
-
-    assertThrows(expectedErrorException::class.java) {
-        errorTask.mockError(expectedErrorException)
-        runBlocking { coLocationCall() }
+    private fun <T, R> testTaskWithCancelThrows(
+        createTask: MockKMatcherScope.() -> Task<T>,
+        taskResult: T,
+        expectedResult: R,
+        expectedErrorException: Exception,
+        coLocationCall: suspend CoroutineScope.() -> R
+    ) {
+        testTaskSuccess(createTask, taskResult, expectedResult, coLocationCall)
+        testTaskFailure(createTask, expectedErrorException, coLocationCall)
+        assertThrows(CancellationException::class.java) { testTaskCancel(createTask, coLocationCall) }
     }
 
-}
-
-private fun <T> Task<T>.mockSuccess(taskResult: T) = every { addOnSuccessListener(any()) } answers {
-    firstArg<OnSuccessListener<T>>().onSuccess(taskResult)
-    self as Task<T>
-}
-
-private fun <E : Exception> Task<*>.mockError(exception: E) = every { addOnFailureListener(any()) } answers {
-    firstArg<OnFailureListener>().onFailure(exception)
-    self as Task<*>
-}
-
-private fun Task<*>.mockCanceled() = every { addOnCanceledListener(any()) } answers {
-    firstArg<OnCanceledListener>().onCanceled()
-    self as Task<*>
-}
-
-private fun <T> mockTask() = mockk<Task<T>>().apply {
-    every { addOnSuccessListener(any()) } returns this
-    every { addOnCanceledListener(any()) } returns this
-    every { addOnFailureListener(any()) } returns this
-}
-
-private suspend fun CapturingSlot<*>.waitForCapture() {
-    while (!isCaptured) {
-        delay(1)
+    private fun <T, R> testTaskWithCancelReturns(
+        createTask: MockKMatcherScope.() -> Task<T>,
+        taskResult: T,
+        expectedResult: R?,
+        expectedErrorException: Exception,
+        cancelResult: R?,
+        coLocationCall: suspend CoroutineScope.() -> R
+    ) {
+        testTaskSuccess(createTask, taskResult, expectedResult, coLocationCall)
+        testTaskFailure(createTask, expectedErrorException, coLocationCall)
+        assertEquals(cancelResult, testTaskCancel(createTask, coLocationCall))
     }
-}
 
-class TestException : Exception()
+    private fun <T, R> testTaskCancel(
+        createTask: MockKMatcherScope.() -> Task<T>,
+        coLocationCall: suspend CoroutineScope.() -> R
+    ): R? {
+        val cancelTask = mockTask<T>()
+        every { createTask() } returns cancelTask
+
+        cancelTask.mockCanceled()
+
+        return runBlocking { coLocationCall() }
+    }
+
+    private fun <T, R> testTaskSuccess(
+        createTask: MockKMatcherScope.() -> Task<T>,
+        taskResult: T,
+        expectedResult: R,
+        coLocationCall: suspend CoroutineScope.() -> R
+    ) {
+        val successTask = mockTask<T>()
+        every { createTask() } returns successTask
+
+        successTask.mockSuccess(taskResult)
+
+        assertEquals(expectedResult, runBlocking { coLocationCall() })
+    }
+
+    private fun <T, R> testTaskFailure(
+        createTask: MockKMatcherScope.() -> Task<T>,
+        expectedErrorException: Exception,
+        coLocationCall: suspend CoroutineScope.() -> R
+    ) {
+        val errorTask = mockTask<T>()
+        every { createTask() } returns errorTask
+
+        assertThrows(expectedErrorException::class.java) {
+            errorTask.mockError(expectedErrorException)
+            runBlocking { coLocationCall() }
+        }
+
+    }
+
+
+    private fun <T> Task<T>.mockSuccess(taskResult: T) {
+        every { isComplete } returns false
+        every { isCanceled } returns false
+        every { exception } returns null
+        every { result } returns taskResult
+        every { addOnCompleteListener(any()) } answers {
+            val task = self as Task<T>
+            firstArg<OnCompleteListener<T>>().onComplete(task)
+            task
+        }
+        every { addOnSuccessListener(any()) } answers {
+            firstArg<OnSuccessListener<T>>().onSuccess(taskResult)
+            self as Task<T>
+        }
+    }
+
+
+    private fun <E : Exception, T> Task<T>.mockError(e: E) {
+        every { isComplete } returns false
+        every { exception } returns e
+        every { addOnCompleteListener(any()) } answers {
+            val task = self as Task<T>
+            firstArg<OnCompleteListener<T>>().onComplete(task)
+            task
+        }
+        every { addOnFailureListener(any()) } answers {
+            firstArg<OnFailureListener>().onFailure(e)
+            self as Task<T>
+        }
+    }
+
+    private fun <T> Task<T>.mockCanceled() {
+        every { isComplete } returns false
+        every { isCanceled } returns true
+        every { exception } returns null
+        every { addOnCompleteListener(any()) } answers {
+            val task = self as Task<T>
+            firstArg<OnCompleteListener<T>>().onComplete(task)
+            task
+        }
+        every { addOnCanceledListener(any()) } answers {
+            firstArg<OnCanceledListener>().onCanceled()
+            self as Task<T>
+        }
+    }
+
+    private fun <T> mockTask() = mockk<Task<T>>().apply {
+        every { addOnSuccessListener(any()) } returns this
+        every { addOnCanceledListener(any()) } returns this
+        every { addOnFailureListener(any()) } returns this
+    }
+
+    private suspend fun CapturingSlot<*>.waitForCapture() {
+        while (!isCaptured) {
+            delay(1)
+        }
+    }
+
+    class TestException : Exception()
+}
