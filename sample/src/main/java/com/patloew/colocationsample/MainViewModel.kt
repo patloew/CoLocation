@@ -4,9 +4,9 @@ import android.location.Address
 import android.location.Location
 import android.util.Log
 import androidx.lifecycle.*
-import com.google.android.gms.location.LocationRequest
 import com.patloew.colocation.CoGeocoder
 import com.patloew.colocation.CoLocation
+import com.patloew.colocation.request.LocationRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
