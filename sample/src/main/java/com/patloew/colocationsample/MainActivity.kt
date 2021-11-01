@@ -19,6 +19,7 @@ import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.LibsBuilder
 import com.patloew.colocation.CoGeocoder
 import com.patloew.colocation.CoLocation
+import com.patloew.colocation.LocationServicesSource
 import java.text.DateFormat
 import java.util.Date
 
