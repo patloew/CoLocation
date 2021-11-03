@@ -1,11 +1,21 @@
 package com.patloew.colocationsample
 
+import android.content.Context
 import android.location.Address
 import android.location.Location
 import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
+import androidx.lifecycle.switchMap
+import androidx.lifecycle.viewModelScope
 import com.patloew.colocation.CoGeocoder
 import com.patloew.colocation.CoLocation
+import com.patloew.colocation.LocationServicesSource
 import com.patloew.colocation.request.LocationRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -26,9 +36,11 @@ import kotlinx.coroutines.launch
  * See the License for the specific language governing permissions and
  * limitations under the License. */
 class MainViewModel(
-    private val coLocation: CoLocation,
-    private val coGeocoder: CoGeocoder
+    private val appContext: Context
 ) : ViewModel(), LifecycleObserver {
+
+    private var coLocation: CoLocation = CoLocation.from(appContext)
+    private val coGeocoder: CoGeocoder = CoGeocoder.from(appContext)
 
     private val locationRequest: LocationRequest = LocationRequest.create()
         .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -44,8 +56,10 @@ class MainViewModel(
         liveData { emit(coGeocoder.getAddressFromLocation(location)) }
     }
 
-    private val mutableResolveSettingsEvent: MutableLiveData<CoLocation.SettingsResult.Resolvable> = MutableLiveData()
-    val resolveSettingsEvent: LiveData<CoLocation.SettingsResult.Resolvable> = mutableResolveSettingsEvent
+    private val mutableResolveSettingsEvent: MutableLiveData<CoLocation.SettingsResult.Resolvable> =
+        MutableLiveData()
+    val resolveSettingsEvent: LiveData<CoLocation.SettingsResult.Resolvable> =
+        mutableResolveSettingsEvent
 
     private var locationUpdatesJob: Job? = null
 
@@ -60,6 +74,16 @@ class MainViewModel(
         locationUpdatesJob = null
     }
 
+    fun switchSource(source: LocationServicesSource) {
+        onStop()
+        coLocation = if (source == LocationServicesSource.NONE) {
+            CoLocation.from(appContext)
+        } else {
+            CoLocation.from(appContext, source)
+        }
+        onStart()
+    }
+
     private fun startLocationUpdatesAfterCheck() {
         viewModelScope.launch {
             val settingsResult = coLocation.checkLocationSettings(locationRequest)
@@ -68,8 +92,11 @@ class MainViewModel(
                     coLocation.getLastLocation()?.run(mutableLocationUpdates::postValue)
                     startLocationUpdates()
                 }
-                is CoLocation.SettingsResult.Resolvable -> mutableResolveSettingsEvent.postValue(settingsResult)
-                else -> { /* Ignore for now, we can't resolve this anyway */ }
+                is CoLocation.SettingsResult.Resolvable -> mutableResolveSettingsEvent.postValue(
+                    settingsResult
+                )
+                else -> { /* Ignore for now, we can't resolve this anyway */
+                }
             }
         }
     }
