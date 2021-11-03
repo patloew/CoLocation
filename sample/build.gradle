@@ -1,10 +1,11 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.huawei.agconnect'
 apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 31
     defaultConfig {
-        applicationId "com.patloew.rxlocationsample"
+        applicationId "com.patloew.colocationsample"
         minSdkVersion 19
         targetSdkVersion 31
         versionCode 1
