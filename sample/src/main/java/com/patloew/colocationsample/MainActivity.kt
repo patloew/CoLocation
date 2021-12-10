@@ -21,7 +21,6 @@ import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.LibsBuilder
 import com.patloew.colocation.CoGeocoder
 import com.patloew.colocation.CoLocation
-import com.patloew.colocation.LocationServicesSource
 import java.text.DateFormat
 import java.util.Date
 
@@ -48,12 +47,14 @@ class MainActivity : AppCompatActivity() {
     private var lastUpdate: TextView? = null
     private var locationText: TextView? = null
     private var addressText: TextView? = null
-    private var sourceGroup: RadioGroup? = null
 
     private val viewModel: MainViewModel by viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T =
-                MainViewModel(applicationContext) as T
+                MainViewModel(
+                    CoLocation.from(this@MainActivity),
+                    CoGeocoder.from(this@MainActivity)
+                ) as T
         }
     }
 
@@ -64,29 +65,15 @@ class MainActivity : AppCompatActivity() {
         lastUpdate = findViewById(R.id.tv_last_update)
         locationText = findViewById(R.id.tv_current_location)
         addressText = findViewById(R.id.tv_current_address)
-        sourceGroup = findViewById(R.id.source_group)
         lifecycle.addObserver(viewModel)
         viewModel.locationUpdates.observe(this, this::onLocationUpdate)
         viewModel.addressUpdates.observe(this, this::onAddressUpdate)
         viewModel.resolveSettingsEvent.observe(this) { it.resolve(this, REQUEST_SHOW_SETTINGS) }
-
-        initSources()
     }
 
-    private fun initSources() {
-        sourceGroup?.setOnCheckedChangeListener { _, checkedId ->
-            when (checkedId) {
-                R.id.source_auto -> {
-                    viewModel.switchSource(LocationServicesSource.NONE)
-                }
-                R.id.source_gms -> {
-                    viewModel.switchSource(LocationServicesSource.GMS)
-                }
-                R.id.source_hms -> {
-                    viewModel.switchSource(LocationServicesSource.HMS)
-                }
-            }
-        }
+    override fun onResume() {
+        super.onResume()
+//        checkPlayServicesAvailable()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

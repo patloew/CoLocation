@@ -15,7 +15,6 @@ import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.patloew.colocation.CoGeocoder
 import com.patloew.colocation.CoLocation
-import com.patloew.colocation.LocationServicesSource
 import com.patloew.colocation.request.LocationRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -36,11 +35,9 @@ import kotlinx.coroutines.launch
  * See the License for the specific language governing permissions and
  * limitations under the License. */
 class MainViewModel(
-    private val appContext: Context
+    private val coLocation: CoLocation,
+    private val coGeocoder: CoGeocoder
 ) : ViewModel(), LifecycleObserver {
-
-    private var coLocation: CoLocation = CoLocation.from(appContext)
-    private val coGeocoder: CoGeocoder = CoGeocoder.from(appContext)
 
     private val locationRequest: LocationRequest = LocationRequest.create()
         .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -72,16 +69,6 @@ class MainViewModel(
     fun onStop() {
         locationUpdatesJob?.cancel()
         locationUpdatesJob = null
-    }
-
-    fun switchSource(source: LocationServicesSource) {
-        onStop()
-        coLocation = if (source == LocationServicesSource.NONE) {
-            CoLocation.from(appContext)
-        } else {
-            CoLocation.from(appContext, source)
-        }
-        onStart()
     }
 
     private fun startLocationUpdatesAfterCheck() {

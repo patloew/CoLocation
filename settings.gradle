@@ -1,1 +1,3 @@
-include ':sample', ':library'
+include ':sample', ':core'
+include ':google'
+include ':huawei'
