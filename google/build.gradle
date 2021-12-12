@@ -3,6 +3,8 @@ plugins {
     id 'kotlin-android'
 }
 
+apply plugin: "com.vanniktech.maven.publish"
+
 android {
     compileSdkVersion 31
 
