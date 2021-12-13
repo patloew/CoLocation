@@ -52,12 +52,20 @@ interface CoLocation {
         }
 
         private fun getGmsImplementation (context: Context): CoLocation? {
-            val gmsClass = Class.forName("com.patloew.colocation.google.CoLocationGms").kotlin
+            val gmsClass = try {
+                Class.forName("com.patloew.colocation.google.CoLocationGms").kotlin
+            } catch (e: Exception) {
+                return null
+            }
             return gmsClass.primaryConstructor?.call(context) as? CoLocation
         }
 
         private fun getHmsImplementation (context: Context): CoLocation? {
-            val hmsClass = Class.forName("com.patloew.colocation.huawei.CoLocationHms").kotlin
+            val hmsClass = try {
+                Class.forName("com.patloew.colocation.huawei.CoLocationHms").kotlin
+            } catch (e: Exception) {
+                return null
+            }
             return hmsClass.primaryConstructor!!.call(context) as CoLocation
         }
     }
