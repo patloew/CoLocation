@@ -53,7 +53,7 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.10"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.10"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.1"
 
     implementation project(':google')
     implementation project(':huawei')
@@ -69,5 +69,5 @@ dependencies {
     testImplementation "io.mockk:mockk:1.11.0"
     testImplementation 'junit:junit:4.12'
     testImplementation "androidx.arch.core:core-testing:2.1.0"
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.10'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.1'
 }
