@@ -1,12 +1,21 @@
 package com.patloew.colocationsample
 
+import android.content.Context
 import android.location.Address
 import android.location.Location
 import android.util.Log
-import androidx.lifecycle.*
-import com.google.android.gms.location.LocationRequest
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
+import androidx.lifecycle.switchMap
+import androidx.lifecycle.viewModelScope
 import com.patloew.colocation.CoGeocoder
 import com.patloew.colocation.CoLocation
+import com.patloew.colocation.request.LocationRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
@@ -44,8 +53,10 @@ class MainViewModel(
         liveData { emit(coGeocoder.getAddressFromLocation(location)) }
     }
 
-    private val mutableResolveSettingsEvent: MutableLiveData<CoLocation.SettingsResult.Resolvable> = MutableLiveData()
-    val resolveSettingsEvent: LiveData<CoLocation.SettingsResult.Resolvable> = mutableResolveSettingsEvent
+    private val mutableResolveSettingsEvent: MutableLiveData<CoLocation.SettingsResult.Resolvable> =
+        MutableLiveData()
+    val resolveSettingsEvent: LiveData<CoLocation.SettingsResult.Resolvable> =
+        mutableResolveSettingsEvent
 
     private var locationUpdatesJob: Job? = null
 
@@ -68,8 +79,11 @@ class MainViewModel(
                     coLocation.getLastLocation()?.run(mutableLocationUpdates::postValue)
                     startLocationUpdates()
                 }
-                is CoLocation.SettingsResult.Resolvable -> mutableResolveSettingsEvent.postValue(settingsResult)
-                else -> { /* Ignore for now, we can't resolve this anyway */ }
+                is CoLocation.SettingsResult.Resolvable -> mutableResolveSettingsEvent.postValue(
+                    settingsResult
+                )
+                else -> { /* Ignore for now, we can't resolve this anyway */
+                }
             }
         }
     }

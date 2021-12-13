@@ -1,0 +1,49 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+}
+
+apply plugin: "com.vanniktech.maven.publish"
+
+android {
+    compileSdkVersion 31
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 31
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    api project(':core')
+
+    api 'com.huawei.hms:location:6.0.0.302'
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.10"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1"
+
+    testImplementation "io.mockk:mockk:1.11.0"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.2"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.7.2"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:5.7.2"
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.10'
+}

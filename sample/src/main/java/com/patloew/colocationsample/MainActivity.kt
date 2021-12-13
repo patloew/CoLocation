@@ -7,6 +7,8 @@ import android.location.Location
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -71,29 +73,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        checkPlayServicesAvailable()
+//        checkPlayServicesAvailable()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_SHOW_SETTINGS && resultCode == Activity.RESULT_OK) viewModel.startLocationUpdates()
-    }
-
-    private fun checkPlayServicesAvailable() {
-        val apiAvailability = GoogleApiAvailability.getInstance()
-        val status = apiAvailability.isGooglePlayServicesAvailable(this)
-
-        if (status != ConnectionResult.SUCCESS) {
-            if (apiAvailability.isUserResolvableError(status)) {
-                apiAvailability.getErrorDialog(this, status, 1).show()
-            } else {
-                Snackbar.make(
-                    lastUpdate!!,
-                    "Google Play Services unavailable. This app will not work",
-                    Snackbar.LENGTH_INDEFINITE
-                ).show()
-            }
-        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
