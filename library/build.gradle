@@ -3,11 +3,15 @@ plugins {
     id 'kotlin-android'
     id 'de.mannodermaus.android-junit5'
     id 'jacoco'
+    id 'maven-publish'
 }
 
 jacoco {
     toolVersion = "0.8.7"
 }
+
+group = 'com.github.OrderIn'
+version = '1.2.0'
 
 android {
     compileSdkVersion 31
@@ -57,3 +61,17 @@ dependencies {
 }
 
 task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest'])
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.github.OrderIn'
+                artifactId = 'CoLocation'
+                version = '1.2.0'
+            }
+        }
+    }
+}
