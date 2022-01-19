@@ -22,8 +22,6 @@ android {
     defaultConfig {
         minSdkVersion 19
         targetSdkVersion 31
-        versionCode 1
-        versionName "1.1.0"
     }
     buildTypes {
         release {
@@ -50,8 +48,8 @@ android {
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
 
-    api 'com.google.android.gms:play-services-location:18.0.0'
-    api 'com.huawei.hms:location:6.0.0.302'
+    api 'com.google.android.gms:play-services-location:19.0.1'
+    api 'com.huawei.hms:location:6.3.0.300'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.10"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0"

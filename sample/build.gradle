@@ -58,8 +58,6 @@ dependencies {
     implementation project(':library')
     //implementation 'com.patloew.colocation:colocation:1.1.0'
 
-    implementation 'com.google.android.gms:play-services-location:18.0.0'
-
     implementation('com.mikepenz:aboutlibraries:6.2.3@aar') {
         transitive = true
     }
