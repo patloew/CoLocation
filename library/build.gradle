@@ -5,13 +5,6 @@ plugins {
     id 'jacoco'
 }
 
-ext {
-    RELEASE_REPOSITORY_URL = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-    SNAPSHOT_REPOSITORY_URL = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-}
-
-apply plugin: "com.vanniktech.maven.publish"
-
 jacoco {
     toolVersion = "0.8.7"
 }
