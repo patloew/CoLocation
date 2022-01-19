@@ -1,14 +1,16 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.huawei.agconnect'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     defaultConfig {
-        applicationId "com.patloew.rxlocationsample"
-        minSdkVersion 14
-        targetSdkVersion 22
+        applicationId "com.patloew.colocationsample"
+        minSdkVersion 19
+        targetSdkVersion 31
         versionCode 1
         versionName "1.0.0"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -47,14 +49,14 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.3.1"
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
 
+    implementation "androidx.multidex:multidex:2.0.1"
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.10"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0"
 
     implementation project(':library')
     //implementation 'com.patloew.colocation:colocation:1.1.0'
-
-    implementation 'com.google.android.gms:play-services-location:18.0.0'
 
     implementation('com.mikepenz:aboutlibraries:6.2.3@aar') {
         transitive = true

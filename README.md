@@ -66,6 +66,13 @@ override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) 
 }
 ```
 
+Library has a support for newest Huawei devices with **HMS**. Library automatically chooses available
+location provider (GMS or HMS), but also is able to run with the specific `LocationServicesSource`:
+```
+// Will use the HMS for fetching location
+CoLocation.from(appContext, LocationServicesSource.HMS)
+```
+
 # Sample
 
 A basic sample app is available in the `sample` project.
@@ -81,8 +88,10 @@ dependencies {
 }
 ```
 
-If you want to use a newer version of Google Play Services, declare the newer version in your `build.gradle`. This then
+If you want to use a newer version of Google Play Services or Huawei Mobile Services, declare the newer version in your `build.gradle`. This then
 overrides the version declared in the library.
+
+For **HMS** devices you have to have a Huawei configured project (see more https://developer.huawei.com/consumer/en/doc/development/HMSCore-Guides/dev-process-0000001050746141). HMS location will not work on devices without HMS and on projects without `agconnect-services.json` with Huawei specific configuration.
 
 CoLocation only works with Android Gradle Plugin 3.0.0 or higher, since it uses Java 8 language features. Don't forget
 to set the source code compatibility to Java 8:

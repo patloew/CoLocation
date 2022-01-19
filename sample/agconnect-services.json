@@ -1,0 +1,34 @@
+{
+	"agcgw_all":{
+		"CN":"connect-drcn.dbankcloud.cn",
+		"CN_back":"connect-drcn.hispace.hicloud.com",
+		"DE":"connect-dre.dbankcloud.cn",
+		"DE_back":"connect-dre.hispace.hicloud.com",
+		"RU":"connect-drru.dbankcloud.cn",
+		"RU_back":"connect-drru.hispace.hicloud.com",
+		"SG":"connect-dra.dbankcloud.cn",
+		"SG_back":"connect-dra.hispace.hicloud.com"
+	},
+	"client":{
+		"cp_id":"5190380000021935096",
+		"product_id":"737518067793671637",
+		"project_id":"737518067793671637",
+		"app_id":"104902579",
+		"package_name":"com.patloew.colocationsample"
+	},
+	"oauth_client":{
+		"client_id":"104902579",
+		"client_type":30
+	},
+	"app_info":{
+		"app_id":"751450557364841280",
+		"package_name":"com.patloew.colocationsample"
+	},
+	"code":{
+		"code1":"63592BED65E41A4E9074410726FEA276",
+		"code2":"B9E756F02EDD02CF4E0D7B66FE54E51E",
+		"code3":"A7C073C138C8338F064F58B0B6AF4A5D",
+		"code4":"98CCAB3A3213C42C983D4B47F79FEF25"
+	},
+	"configuration_version":"3.0"
+}
