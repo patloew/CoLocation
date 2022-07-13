@@ -6,11 +6,8 @@ import android.content.Context
 import android.content.IntentSender
 import android.location.Location
 import androidx.annotation.RequiresPermission
-import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationSettingsRequest
-import com.google.android.gms.location.SettingsClient
+import com.patloew.colocation.request.LocationRequest
+import com.patloew.colocation.request.LocationSettingsRequest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -35,7 +32,14 @@ import kotlinx.coroutines.flow.Flow
 interface CoLocation {
 
     companion object {
-        fun from(context: Context): CoLocation = CoLocationImpl(context.applicationContext)
+        fun from(
+            context: Context,
+            locationServicesSource: LocationServicesSource = context.getLocationServiceSource()
+        ): CoLocation = when (locationServicesSource) {
+            LocationServicesSource.GMS -> CoLocationGms(context)
+            LocationServicesSource.HMS -> CoLocationHms(context)
+            else -> throw IllegalStateException("Google or Huawei mobile services are required")
+        }
     }
 
     /**
@@ -51,7 +55,7 @@ interface CoLocation {
      * Returns the availability of location data. When isLocationAvailable() returns true, then the location returned
      * by getLastLocation() will be reasonably up to date within the hints specified by the active LocationRequests.
      *
-     * If the client isn't connected to Google Play services and the request times out, null is returned.
+     * If the client isn't connected to Google/Huawei mobile services and the request times out, null is returned.
      *
      * Note it's always possible for getLastLocation() to return null even when this method returns true
      * (e.g. location settings were disabled between calls).
@@ -69,6 +73,8 @@ interface CoLocation {
      *
      * Background apps calling this method will be throttled under background location limits, so background apps may
      * find the method returns null locations more often.
+     *
+     * Always returns null when HMS provider is used (no such method in HMS location provider)
      *
      * @param priority One the PRIORITY_* in [LocationRequest].
      */
@@ -91,7 +97,7 @@ interface CoLocation {
      * Requests a single location update. This is a convenience fun which can be used instead of [getLocationUpdates]
      * if only one update is needed and [getLastLocation] is not sufficient.
      *
-     * This call will keep the Google Play services connection active, until the coroutine is cancelled or the location
+     * This call will keep the Google/Huawei mobile services connection active, until the coroutine is cancelled or the location
      * update was returned.
      */
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
@@ -101,8 +107,8 @@ interface CoLocation {
      * Requests location updates. This method is suited for the foreground use cases. For background use cases, the
      * PendingIntent version of the method is recommended, see requestLocationUpdates(LocationRequest, PendingIntent).
      *
-     * This call will keep the Google Play services connection active, until the coroutine is cancelled or the maximum
-     * number of updates that are requested via [LocationRequest.getNumUpdates] are delivered.
+     * This call will keep the Google/Huawei mobile services connection active, until the coroutine is cancelled or the maximum
+     * number of updates that are requested via [LocationRequest.numUpdates] are delivered.
      *
      * @param capacity type/capacity of the buffer between coroutines. Allowed values are the same as in `Channel(...)`
      * factory function: [BUFFERED][Channel.BUFFERED], [CONFLATED][Channel.CONFLATED] (by default),
@@ -111,7 +117,10 @@ interface CoLocation {
      */
     @ExperimentalCoroutinesApi
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
-    fun getLocationUpdates(locationRequest: LocationRequest, capacity: Int = Channel.CONFLATED): Flow<Location>
+    fun getLocationUpdates(
+        locationRequest: LocationRequest,
+        capacity: Int = Channel.CONFLATED
+    ): Flow<Location>
 
     /**
      * Sets the mock location to be used for the location provider. This location will be used in place of any actual
@@ -157,14 +166,14 @@ interface CoLocation {
          *
          *     resolvable.resolve(activity, REQUEST_CODE_SETTINGS)
          */
-        class Resolvable(val exception: ResolvableApiException) : SettingsResult() {
+        class Resolvable(val exceptionWrapper: ResolvableApiExceptionWrapper) : SettingsResult() {
             /**
              * Show the dialog to the user. The Activity's onActivityResult method will be invoked after the user is
              * done. If the resultCode is RESULT_OK, the location settings are now satisfied.
              */
             fun resolve(activity: Activity, requestCode: Int) {
                 try {
-                    exception.startResolutionForResult(activity, requestCode)
+                    exceptionWrapper.startResolutionForResult(activity, requestCode)
                 } catch (sendEx: IntentSender.SendIntentException) {
                     // Ignore the error.
                 }

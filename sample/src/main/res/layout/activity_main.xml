@@ -47,5 +47,38 @@
         android:text="Not available"
         style="@style/TextAppearance.AppCompat.Body1"/>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Location source"
+        style="@style/TextAppearance.AppCompat.Caption"/>
+
+    <RadioGroup
+        android:id="@+id/source_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RadioButton
+            android:id="@+id/source_auto"
+            android:text="Choose automatically"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"/>
+
+        <RadioButton
+            android:id="@+id/source_gms"
+            android:text="GMS"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="false"/>
+
+        <RadioButton
+            android:id="@+id/source_hms"
+            android:text="HMS"
+            android:checked="false"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </RadioGroup>
+
 
 </LinearLayout>

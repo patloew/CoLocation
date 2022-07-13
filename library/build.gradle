@@ -3,27 +3,22 @@ plugins {
     id 'kotlin-android'
     id 'de.mannodermaus.android-junit5'
     id 'jacoco'
+    id 'maven-publish'
 }
-
-ext {
-    RELEASE_REPOSITORY_URL = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-    SNAPSHOT_REPOSITORY_URL = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-}
-
-apply plugin: "com.vanniktech.maven.publish"
 
 jacoco {
     toolVersion = "0.8.7"
 }
 
+group = 'com.github.OrderIn'
+version = '1.2.1'
+
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
 
     defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 30
-        versionCode 1
-        versionName "1.1.0"
+        minSdkVersion 19
+        targetSdkVersion 31
     }
     buildTypes {
         release {
@@ -50,7 +45,8 @@ android {
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
 
-    api 'com.google.android.gms:play-services-location:18.0.0'
+    api 'com.google.android.gms:play-services-location:19.0.1'
+    api 'com.huawei.hms:location:6.4.0.300'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.10"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0"
@@ -65,3 +61,17 @@ dependencies {
 }
 
 task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest'])
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.github.OrderIn'
+                artifactId = 'CoLocation'
+                version = '1.2.1'
+            }
+        }
+    }
+}

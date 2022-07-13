@@ -7,6 +7,8 @@ import android.location.Location
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +21,7 @@ import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.LibsBuilder
 import com.patloew.colocation.CoGeocoder
 import com.patloew.colocation.CoLocation
+import com.patloew.colocation.LocationServicesSource
 import java.text.DateFormat
 import java.util.Date
 
@@ -45,14 +48,12 @@ class MainActivity : AppCompatActivity() {
     private var lastUpdate: TextView? = null
     private var locationText: TextView? = null
     private var addressText: TextView? = null
+    private var sourceGroup: RadioGroup? = null
 
     private val viewModel: MainViewModel by viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T =
-                MainViewModel(
-                    CoLocation.from(this@MainActivity),
-                    CoGeocoder.from(this@MainActivity)
-                ) as T
+                MainViewModel(applicationContext) as T
         }
     }
 
@@ -63,37 +64,34 @@ class MainActivity : AppCompatActivity() {
         lastUpdate = findViewById(R.id.tv_last_update)
         locationText = findViewById(R.id.tv_current_location)
         addressText = findViewById(R.id.tv_current_address)
+        sourceGroup = findViewById(R.id.source_group)
         lifecycle.addObserver(viewModel)
         viewModel.locationUpdates.observe(this, this::onLocationUpdate)
         viewModel.addressUpdates.observe(this, this::onAddressUpdate)
         viewModel.resolveSettingsEvent.observe(this) { it.resolve(this, REQUEST_SHOW_SETTINGS) }
+
+        initSources()
     }
 
-    override fun onResume() {
-        super.onResume()
-        checkPlayServicesAvailable()
+    private fun initSources() {
+        sourceGroup?.setOnCheckedChangeListener { _, checkedId ->
+            when (checkedId) {
+                R.id.source_auto -> {
+                    viewModel.switchSource(LocationServicesSource.NONE)
+                }
+                R.id.source_gms -> {
+                    viewModel.switchSource(LocationServicesSource.GMS)
+                }
+                R.id.source_hms -> {
+                    viewModel.switchSource(LocationServicesSource.HMS)
+                }
+            }
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_SHOW_SETTINGS && resultCode == Activity.RESULT_OK) viewModel.startLocationUpdates()
-    }
-
-    private fun checkPlayServicesAvailable() {
-        val apiAvailability = GoogleApiAvailability.getInstance()
-        val status = apiAvailability.isGooglePlayServicesAvailable(this)
-
-        if (status != ConnectionResult.SUCCESS) {
-            if (apiAvailability.isUserResolvableError(status)) {
-                apiAvailability.getErrorDialog(this, status, 1).show()
-            } else {
-                Snackbar.make(
-                    lastUpdate!!,
-                    "Google Play Services unavailable. This app will not work",
-                    Snackbar.LENGTH_INDEFINITE
-                ).show()
-            }
-        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
