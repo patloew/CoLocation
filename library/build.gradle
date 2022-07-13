@@ -11,7 +11,7 @@ jacoco {
 }
 
 group = 'com.github.OrderIn'
-version = '1.2.0'
+version = '1.2.1'
 
 android {
     compileSdkVersion 31
@@ -46,7 +46,7 @@ dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
 
     api 'com.google.android.gms:play-services-location:19.0.1'
-    api 'com.huawei.hms:location:6.3.0.300'
+    api 'com.huawei.hms:location:6.4.0.300'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.10"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0"
@@ -70,7 +70,7 @@ afterEvaluate {
                 from components.release
                 groupId = 'com.github.OrderIn'
                 artifactId = 'CoLocation'
-                version = '1.2.0'
+                version = '1.2.1'
             }
         }
     }
