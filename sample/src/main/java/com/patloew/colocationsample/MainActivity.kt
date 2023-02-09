@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
 
     private val viewModel: MainViewModel by viewModels {
         object : ViewModelProvider.Factory {
-            override fun <T : ViewModel?> create(modelClass: Class<T>): T =
+            override fun <T : ViewModel> create(modelClass: Class<T>): T =
                 MainViewModel(
                     CoLocation.from(this@MainActivity),
                     CoGeocoder.from(this@MainActivity)
@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity() {
 
         if (status != ConnectionResult.SUCCESS) {
             if (apiAvailability.isUserResolvableError(status)) {
-                apiAvailability.getErrorDialog(this, status, 1).show()
+                apiAvailability.getErrorDialog(this, status, 1)?.show()
             } else {
                 Snackbar.make(
                     lastUpdate!!,

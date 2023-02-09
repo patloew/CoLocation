@@ -73,7 +73,9 @@ internal class CoLocationImpl(private val context: Context) : CoLocation {
             lateinit var callback: ClearableLocationCallback
             callback = object : LocationCallback() {
                 override fun onLocationResult(result: LocationResult) {
-                    cont.resume(result.lastLocation)
+                    result.lastLocation?.run(cont::resume)
+                            ?: cont.resumeWithException(NullPointerException("lastLocation was null"))
+
                     locationProvider.removeLocationUpdates(callback)
                     callback.clear()
                 }
@@ -94,11 +96,11 @@ internal class CoLocationImpl(private val context: Context) : CoLocation {
     @ExperimentalCoroutinesApi
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
     override fun getLocationUpdates(locationRequest: LocationRequest, capacity: Int): Flow<Location> =
-        callbackFlow<Location> {
+        callbackFlow {
             val callback = object : LocationCallback() {
                 private var counter: Int = 0
                 override fun onLocationResult(result: LocationResult) {
-                    trySendBlocking(result.lastLocation)
+                    result.lastLocation?.run(::trySendBlocking)
                     if (locationRequest.numUpdates == ++counter) close()
                 }
             }.let(::ClearableLocationCallback) // Needed since we would have memory leaks otherwise

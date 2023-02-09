@@ -66,14 +66,14 @@ internal class CoGeocoderImpl(
         longitude: Double,
         locale: Locale,
         maxResults: Int
-    ): List<Address> = withContext(dispatcher) { geocoder.getFromLocation(latitude, longitude, maxResults) }
+    ): List<Address> = withContext(dispatcher) { geocoder.getFromLocation(latitude, longitude, maxResults) ?: emptyList() }
 
     override suspend fun getAddressListFromLocationName(
         locationName: String,
         locale: Locale,
         maxResults: Int
     ): List<Address> =
-        withContext(dispatcher) { geocoder.getFromLocationName(locationName, maxResults) }
+        withContext(dispatcher) { geocoder.getFromLocationName(locationName, maxResults) ?: emptyList() }
 
     override suspend fun getAddressListFromLocationName(
         locationName: String,
@@ -91,6 +91,6 @@ internal class CoGeocoderImpl(
             lowerLeftLongitude,
             upperRightLatitude,
             upperRightLongitude
-        )
+        ) ?: emptyList()
     }
 }

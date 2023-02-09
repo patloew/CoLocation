@@ -76,8 +76,8 @@ The library is available on Maven Central. Add the following to your `build.grad
 
 ```groovy
 dependencies {
-    implementation 'com.patloew.colocation:colocation:1.1.0'
-    implementation 'com.google.android.gms:play-services-location:18.0.0'
+    implementation 'com.patloew.colocation:colocation:1.1.1'
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
 }
 ```
 

@@ -37,7 +37,6 @@ class MainViewModel(
         .setInterval(5000)
         .setFastestInterval(2500)
 
-
     private val mutableLocationUpdates: MutableLiveData<Location> = MutableLiveData()
     val locationUpdates: LiveData<Location> = mutableLocationUpdates
     val addressUpdates: LiveData<Address?> = locationUpdates.switchMap { location ->
